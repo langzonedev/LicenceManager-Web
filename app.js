@@ -62,7 +62,7 @@ function changed(action, l, label) { mutationCount++; log(action, l, label); }
 function resetIdle() { clearTimeout(idleTimer); if (user) idleTimer = setTimeout(() => { signOut(); notify('Demo session locked after inactivity.'); }, 15 * 60 * 1000); }
 function maskSecrets() {
   shown.clear(); clearTimeout(revealTimer);
-  document.querySelectorAll('[data-secret-value]').forEach(n => { n.value = '•••• •••• •••• ••••'; n.classList.add('masked'); });
+  document.querySelectorAll('[data-secret-value]').forEach(n => { n.value = '•••• •••• •••• ••••'; n.classList.add('masked'); n.setAttribute('aria-label',(n.getAttribute('aria-label')||'Licence key').replace(/ revealed$/,' hidden')); });
   document.querySelectorAll('[data-action="reveal"]').forEach(n => { n.innerHTML = `${icon('eye')}<span>Show</span>`; n.setAttribute('aria-pressed', 'false'); });
   document.querySelectorAll('input[data-secret-input]').forEach(n => n.type = 'password');
 }
@@ -376,7 +376,7 @@ document.addEventListener('input',event=>{
   if(event.target.closest('#modal'))modalDirty=true;
   if(event.target.id==='search'){
     clearTimeout(searchTimer);const value=event.target.value;const pos=event.target.selectionStart;
-    searchTimer=setTimeout(()=>{query=value;const p=route()[0];if(!['licences','systems','renewals','activity'].includes(p)||route()[1]){location.hash='licences';}else render();requestAnimationFrame(()=>{const input=document.querySelector('#search');if(input){input.focus();try{input.setSelectionRange(pos,pos);}catch{}}});},160);
+    searchTimer=setTimeout(()=>{query=value;const p=route()[0];if(!['licences','systems','renewals','activity'].includes(p)||route()[1]){history.pushState(null,'','#licences');previousHash=location.hash;maskSecrets();}render();requestAnimationFrame(()=>{const input=document.querySelector('#search');if(input){input.focus();try{input.setSelectionRange(pos,pos);}catch{}}});},160);
   }
 });
 document.addEventListener('change',event=>{
