@@ -14,3 +14,13 @@ test('service worker handles only its shell and never intercepts API, document o
   assert.equal(handled('https://example.invalid/OtherApp/app.js'),false);
   assert.equal(handled('https://example.invalid/LicenceManager-Web/arbitrary.json'),false);
 });
+
+test('install reloads shell assets instead of copying stale HTTP cache into a new version',async()=>{
+  const listeners={};let requests;let installing;
+  const self={location:{href:'https://example.invalid/LicenceManager-Web/sw.js'},addEventListener:(name,fn)=>listeners[name]=fn};
+  const source=await readFile(new URL('../sw.js',import.meta.url),'utf8');
+  vm.runInNewContext(source,{self,URL,Request,caches:{open:async()=>({addAll:async items=>{requests=items;}})}});
+  listeners.install({waitUntil:promise=>installing=promise});await installing;
+  assert.equal(requests.length,9);assert.ok(requests.every(request=>request.cache==='reload'));
+  assert.ok(requests.every(request=>request.url.startsWith('https://example.invalid/LicenceManager-Web/')));
+});

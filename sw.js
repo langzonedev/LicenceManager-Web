@@ -1,10 +1,10 @@
 // Only explicit, versioned public application files are cached. Never cache an
 // API response, customer record, document download or arbitrary navigation URL.
-const VERSION = 'licencemanager-shell-v4';
+const VERSION = 'licencemanager-shell-v5';
 const ROOT = new URL('./', self.location.href);
 const FILES = ['index.html','styles.css','app.js','model.js','demo-data.js','manifest.webmanifest','assets/icon.svg','assets/icon-192.png','assets/icon-512.png'];
 const allowed = new Set(FILES.map(path => new URL(path, ROOT).href));
-self.addEventListener('install', event => { event.waitUntil(caches.open(VERSION).then(cache => cache.addAll([...allowed]))); });
+self.addEventListener('install', event => { event.waitUntil(caches.open(VERSION).then(cache => cache.addAll([...allowed].map(url => new Request(url, {cache: 'reload'}))))); });
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('licencemanager-shell-') && key !== VERSION).map(key => caches.delete(key)))).then(()=>self.clients.claim()));
 });
