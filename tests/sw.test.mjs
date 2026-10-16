@@ -41,7 +41,7 @@ test('activation only removes older caches belonging to this app scope and updat
   const listeners={},deleted=[];let activation,skipped=0,claimed=0;
   const self={location:{href:'https://example.invalid/LicenceManager-Web/sw.js'},addEventListener:(name,fn)=>listeners[name]=fn,clients:{claim:async()=>{claimed++;}},skipWaiting:()=>{skipped++;}};
   const source=await readFile(new URL('../sw.js',import.meta.url),'utf8');
-  vm.runInNewContext(source,{self,URL,caches:{keys:async()=>['licencemanager-shell:/LicenceManager-Web/:v0','licencemanager-shell:/LicenceManager-Web/:v7','licencemanager-shell:/OtherApp/:v0','unrelated-cache'],delete:async key=>deleted.push(key)}});
+  const current=vm.runInNewContext(source+'\nVERSION',{self,URL,caches:{keys:async()=>['licencemanager-shell:/LicenceManager-Web/:v0',current,'licencemanager-shell:/OtherApp/:v0','unrelated-cache'],delete:async key=>deleted.push(key)}});
   listeners.activate({waitUntil:value=>activation=value});await activation;
   assert.deepEqual(deleted,['licencemanager-shell:/LicenceManager-Web/:v0']);assert.equal(claimed,1);assert.equal(skipped,0);
   listeners.message({data:{type:'unrelated'}});assert.equal(skipped,0);
