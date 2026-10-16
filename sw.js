@@ -1,6 +1,6 @@
 // Only explicit, versioned public application files are cached. Never cache an
 // API response, customer record, document download or arbitrary navigation URL.
-const VERSION = 'licencemanager-shell-v3';
+const VERSION = 'licencemanager-shell-v4';
 const ROOT = new URL('./', self.location.href);
 const FILES = ['index.html','styles.css','app.js','model.js','demo-data.js','manifest.webmanifest','assets/icon.svg','assets/icon-192.png','assets/icon-512.png'];
 const allowed = new Set(FILES.map(path => new URL(path, ROOT).href));

@@ -56,3 +56,7 @@ test('expanded editors expose distinct ownership, SUM and purchase evidence cont
  vm.runInContext("documentEditor('lm-001');",context);
  assert.match(modal.innerHTML,/name=\"evidenceFile\"/);assert.match(modal.innerHTML,/name=\"sourceUrl\"/);assert.match(modal.innerHTML,/later versions never replace/);
 });
+
+test('past start dates say Started rather than reporting an expired licence',()=>{
+ const {context,app}=harness();vm.runInContext("user=USERS[0];location.hash='#licences/lm-001';render();",context);assert.match(app.innerHTML,/Started/);assert.doesNotMatch(app.innerHTML,/Licence expired/);
+});
