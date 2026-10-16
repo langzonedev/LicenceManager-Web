@@ -71,6 +71,15 @@ export function attention(licence, today) {
 }
 export function allocated(state, id) { return state.associations.filter(a => a.licenceId === id && a.purpose === 'allocation').reduce((sum, a) => sum + a.units, 0); }
 export function linkedSystems(state, id) { return state.associations.filter(a => a.licenceId === id).map(a => ({ ...state.systems.find(s => s.id === a.systemId), association: a })); }
+export function dashboardMatches(licence, filter, today) {
+  if (['retired', 'archived'].includes(licence.lifecycle)) return false;
+  if (filter === 'current') return true;
+  const status = attention(licence, today);
+  if (filter === 'due_soon') return status.tone === 'warning' && status.sort >= 0 && status.sort <= 30;
+  if (filter === 'expired') return status.label.includes('expired');
+  if (filter === 'review') return licence.lifecycle === 'draft' || licence.licenceType === 'unknown' || status.label === 'Needs review';
+  return false;
+}
 export function findLicences(state, query = '', filter = 'all', today) {
   const q = query.trim().toLowerCase();
   return state.licences.filter(l => {
@@ -78,7 +87,8 @@ export function findLicences(state, query = '', filter = 'all', today) {
     if (filter === 'subscription' && l.licenceType !== 'subscription') return false;
     if (filter === 'perpetual' && l.licenceType !== 'perpetual') return false;
     if (filter === 'spare' && !['spare','reserved'].includes(l.holding)) return false;
-    if (filter === 'attention' && !['danger', 'warning'].includes(attention(l, today).tone) && l.lifecycle !== 'draft') return false;
+    if (['current', 'due_soon', 'expired', 'review'].includes(filter) && !dashboardMatches(l, filter, today)) return false;
+    if (filter === 'attention' && !['danger', 'warning'].includes(attention(l, today).tone) && !dashboardMatches(l, 'review', today)) return false;
     const fields = [l.title, l.product, l.vendor, l.reference, l.edition, l.softwareVersion, l.category, l.project, l.legalOwner, l.procuredBy, l.owner, l.subsetLabel, ...linkedSystems(state, l.id).flatMap(s => [s.name, s.hostname, s.environment, s.serviceTag,s.location])];
     return !q || fields.some(x => x?.toLowerCase().includes(q));
   });

@@ -46,4 +46,10 @@ SUM/SUMS terminology and the distinction between perpetual rights and support re
 
 ## Verification scope
 
+Dashboard cards open the precise record set behind their count: current records exclude retired/archived entries; due soon uses the next attention date within 30 days; expired dates identifies expired rights/support; needs review includes drafts and incomplete entitlements. The selected list filter and description remain visible. Renewals counts individual date actions separately from distinct licences; the navigation badge counts licences with unsnoozed due actions.
+
+Shared-entry forms show purchased quantity, holdings in other current entries, capacity available to this entry and remaining capacity as the quantity changes. Explicit spare/reserved subsets count once; editing excludes the current entry before adding its revised quantity. The purchased total never grows automatically. Draft reservations and retirement are explained at the point of editing.
+
+Discard and in-app update confirmations use application dialogs with a safe initial focus. Keep editing and Escape preserve the underlying form; discard is explicit. Browser-controlled tab close/refresh prompts remain browser-managed to protect tab-local edits. Reset restores fixture data, search, sorting and renewal filters. No in-app tour or guide is added; field labels, visible state and contextual feedback explain the interactions.
+
 Automated tests cover independent grouped entries, conserved purchased quantities, spare/unassigned counts, incompatible units, single deployment systems, purchase-pinned evidence despite later revisions, open-source unrestricted quantities, date separation, safe URLs, exports and all existing role/copy/cache tests. Actual browser and deployment evidence belongs in the private product handoff. Field presence is not a production security/compliance claim.

@@ -1,5 +1,5 @@
 import { createFixtures, USERS, DEMO_DATE } from './demo-data.js';
-import { can, escapeHtml as e, attention, allocated, linkedSystems, findLicences, matchLabel, dueEvents, dateStatus, DATE_FIELDS, validateLicence, validateAssociation, metadataCsv, dayNumber, LICENCE_TYPES, LICENCE_MODELS, METRICS, CATEGORIES, modelName, safeUrl, poolBalance, validatePoolEntry, appendEvidenceVersion, pinPurchaseVersion } from './model.js';
+import { can, escapeHtml as e, attention, allocated, linkedSystems, findLicences, matchLabel, dueEvents, dateStatus, DATE_FIELDS, validateLicence, validateAssociation, metadataCsv, dayNumber, LICENCE_TYPES, LICENCE_MODELS, METRICS, CATEGORIES, modelName, safeUrl, poolBalance, validatePoolEntry, appendEvidenceVersion, pinPurchaseVersion, dashboardMatches } from './model.js';
 
 // P1 transport boundary. These records and role previews are fictional, in-memory
 // simulations. Real authentication/authority belongs to the private on-prem API.
@@ -10,6 +10,8 @@ let shown = new Set(), revealTimer, toastTimer, idleTimer;
 let lastFocus = null, modalDirty = false, mutationCount = 0, installPrompt = null, waitingWorker = null;
 const root = document.querySelector('#app');
 const modal = document.querySelector('#modal');
+const confirmation = document.querySelector('#confirmation');
+let pendingConfirmation = null;
 const toast = document.querySelector('#toast');
 const paths = {
   key: '<circle cx="8" cy="8" r="5"/><path d="m12 12 8 8m-4-4 3-3m-6 0 3-3"/>',
@@ -73,7 +75,37 @@ function openModal(title, body, foot = '', kind = '') {
   modal.innerHTML = `<div class="modal-head"><h2 id="modal-title">${e(title)}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close dialog">${icon('close')}</button></div>${body}${foot}`;
   modal.showModal();
 }
-function closeModal(force = false) { if (!force && modalDirty && !confirm('Discard your unsaved changes?')) return; modalDirty = false; modal.close(); if (lastFocus?.isConnected) lastFocus.focus(); }
+function requestConfirmation(title, message, acceptLabel, onAccept, cancelLabel = 'Keep editing') {
+  if (pendingConfirmation) return;
+  pendingConfirmation = { onAccept, focus: document.activeElement };
+  confirmation.innerHTML = `<div class="modal-head"><h2 id="confirmation-title">${e(title)}</h2></div><div class="modal-body"><p id="confirmation-message">${e(message)}</p></div><div class="modal-foot">${btn(cancelLabel,'cancel-confirmation')}${btn(acceptLabel,'accept-confirmation','primary')}</div>`;
+  confirmation.showModal();
+  confirmation.querySelector('[data-action="cancel-confirmation"]').focus();
+}
+function finishConfirmation(accepted = false) {
+  const pending = pendingConfirmation;
+  pendingConfirmation = null;
+  if (confirmation?.open) confirmation.close();
+  if (accepted) pending?.onAccept();
+  else if (pending?.focus?.isConnected) pending.focus.focus();
+}
+function closeModal(force = false) {
+  if (!force && modalDirty) {
+    requestConfirmation('Discard unsaved changes?', 'Your changes have not been saved. Keep editing to preserve them, or discard them to close this form.', 'Discard changes', () => closeModal(true));
+    return;
+  }
+  finishConfirmation();
+  modalDirty = false;
+  modal.querySelectorAll('[data-secret-input]').forEach(input => input.value = '');
+  modal.close();
+  if (lastFocus?.isConnected) lastFocus.focus();
+}
+function applyAppUpdate() {
+  if (!waitingWorker) return;
+  mutationCount = 0; modalDirty = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
+  waitingWorker.postMessage({ type: 'ACTIVATE_UPDATE' });
+}
 function navigate(hash) { maskSecrets(); if (location.hash === `#${hash}`) render(); else location.hash = hash; }
 
 function login() {
@@ -81,9 +113,9 @@ function login() {
 }
 function shell(body) {
   const [page = 'overview'] = route();
-  const count = db.licences.filter(l => ['danger', 'warning'].includes(attention(l, DEMO_DATE).tone)).length;
+  const count = new Set(dueEvents(db, DEMO_DATE).map(event => event.licence.id)).size;
   const nav = [['overview', 'grid', 'Overview'], ['licences', 'licence', 'Licences'], ['systems', 'server', 'Systems'], ['renewals', 'calendar', 'Renewals'], ['activity', 'activity', 'Activity']];
-  return `<div class="shell"><button class="mobile-nav-overlay" data-action="close-nav" aria-label="Close navigation"></button><aside class="sidebar" id="navigation"><a class="brand" href="#overview"><span class="brand-tile">${icon('licence')}</span>Licence Manager</a><div class="workspace-name">WORKSPACE</div><nav class="nav-list" aria-label="Main navigation">${nav.map(([id, i, label]) => `<a class="nav-item ${page === id ? 'active' : ''}" ${page === id ? 'aria-current="page"' : ''} href="#${id}">${icon(i)}${label}${id === 'renewals' && count ? `<span class="nav-count">${count}</span>` : ''}</a>`).join('')}</nav><div class="sidebar-bottom"><a href="#team" class="nav-item ${page === 'team' ? 'active' : ''}">${icon('people')}People & access</a><div class="sidebar-card"><strong>${icon('shield')} Designed for on-premises</strong><p>Your future workspace, on your infrastructure. This preview uses fictional data only.</p></div><div class="sidebar-footer"><span>Lang Systems</span>Idea to production ready software.</div></div></aside><header class="topbar"><button class="icon-btn mobile-toggle" data-action="toggle-nav" aria-label="Open navigation" aria-controls="navigation" aria-expanded="false">${icon('menu')}</button><span class="topbar-label">Example ICT Services</span><form class="global-search" id="global-search" role="search">${icon('search')}<input id="search" type="search" name="query" placeholder="Search licences, systems or service tags…" aria-label="Search licences, systems or service tags" value="${e(query)}" autocomplete="off"><kbd>/</kbd></form><span class="spacer"></span><button class="account-button" data-action="account" aria-label="Account: ${e(user.name)}, ${user.role}">${avatar(user)}<span class="account-text"><strong>${e(user.name)}</strong><small>${e(user.role)}</small></span>${icon('down')}</button></header><div class="demo-strip">${icon('licence')}<span>Fictional demo<span class="demo-extra"> · changes reset on refresh · sample date ${formatDate(DEMO_DATE)}</span>. Do not enter real licence data.</span><button class="text-link" data-action="reset">Reset demo</button></div><main class="content" id="main" tabindex="-1">${body}</main></div>`;
+  return `<div class="shell"><button class="mobile-nav-overlay" data-action="close-nav" aria-label="Close navigation"></button><aside class="sidebar" id="navigation"><a class="brand" href="#overview"><span class="brand-tile">${icon('licence')}</span>Licence Manager</a><div class="workspace-name">WORKSPACE</div><nav class="nav-list" aria-label="Main navigation">${nav.map(([id, i, label]) => `<a class="nav-item ${page === id ? 'active' : ''}" ${page === id ? 'aria-current="page"' : ''} href="#${id}">${icon(i)}${label}${id === 'renewals' && count ? `<span class="nav-count" aria-label="${count} licences with due actions" title="${count} licences with due actions">${count}</span>` : ''}</a>`).join('')}</nav><div class="sidebar-bottom"><a href="#team" class="nav-item ${page === 'team' ? 'active' : ''}">${icon('people')}People & access</a><div class="sidebar-card"><strong>${icon('shield')} Designed for on-premises</strong><p>Your future workspace, on your infrastructure. This preview uses fictional data only.</p></div><div class="sidebar-footer"><span>Lang Systems</span>Idea to production ready software.</div></div></aside><header class="topbar"><button class="icon-btn mobile-toggle" data-action="toggle-nav" aria-label="Open navigation" aria-controls="navigation" aria-expanded="false">${icon('menu')}</button><span class="topbar-label">Example ICT Services</span><form class="global-search" id="global-search" role="search">${icon('search')}<input id="search" type="search" name="query" placeholder="Search licences, systems or service tags…" aria-label="Search licences, systems or service tags" value="${e(query)}" autocomplete="off"><kbd>/</kbd></form><span class="spacer"></span><button class="account-button" data-action="account" aria-label="Account: ${e(user.name)}, ${user.role}">${avatar(user)}<span class="account-text"><strong>${e(user.name)}</strong><small>${e(user.role)}</small></span>${icon('down')}</button></header><div class="demo-strip">${icon('licence')}<span>Fictional demo<span class="demo-extra"> · changes reset on refresh · sample date ${formatDate(DEMO_DATE)}</span>. Do not enter real licence data.</span><button class="text-link" data-action="reset">Reset demo</button></div><main class="content" id="main" tabindex="-1">${body}</main></div>`;
 }
 function empty(title, message, action = '') { return `<div class="empty-state">${icon('search')}<h2>${e(title)}</h2><p>${e(message)}</p>${action}</div>`; }
 function heading(title, subtitle, actions = '', extra = '') { return `<div class="page-heading ${extra}"><div><h1>${e(title)}</h1><p>${e(subtitle)}</p></div><div class="heading-actions">${actions}</div></div>`; }
@@ -108,17 +140,17 @@ function dueRows(events) {
   return `<ul class="due-list">${events.map(d => `<li class="due-row">${productIcon(d.licence)}<div class="info"><a href="#licences/${d.licence.id}">${e(d.licence.title)}</a><small>${e(d.label)} · ${e(d.licence.owner)}</small></div><div class="due-right">${badge(d.days < 0 ? `${Math.abs(d.days)}d overdue` : d.days === 0 ? 'Today' : `In ${d.days} days`, d.days < 0 ? 'danger' : d.days <= 30 ? 'warning' : 'neutral')}<small>${formatDate(d.date)}</small></div></li>`).join('')}</ul>`;
 }
 function overview() {
-  const active = db.licences.filter(l => !['retired', 'archived'].includes(l.lifecycle));
-  const due = active.filter(l => {const status=attention(l,DEMO_DATE);return status.sort>=0&&status.sort<=30&&status.tone==='warning';});
-  const expired = active.filter(l => attention(l, DEMO_DATE).label.includes('expired'));
-  const review = active.filter(l => l.lifecycle === 'draft' || l.licenceType === 'unknown' || attention(l, DEMO_DATE).label === 'Needs review');
+  const active = db.licences.filter(l => dashboardMatches(l, 'current', DEMO_DATE));
+  const due = active.filter(l => dashboardMatches(l, 'due_soon', DEMO_DATE));
+  const expired = active.filter(l => dashboardMatches(l, 'expired', DEMO_DATE));
+  const review = active.filter(l => dashboardMatches(l, 'review', DEMO_DATE));
   const events = dueEvents(db, DEMO_DATE);
   const uniqueDue = events.filter((d, i, all) => all.findIndex(x => x.licence.id === d.licence.id) === i);
-  return `${heading('Overview', 'Your software estate, at a glance.', addLicenceButton())}<div class="stats-grid"><button class="stat" data-action="stat" data-filter="all"><span class="stat-label">Total licences<span class="stat-icon">${icon('licence')}</span></span><strong>${active.length}</strong><small>Across ${new Set(active.map(l => l.vendor)).size} software vendors</small></button><button class="stat warning-stat" data-action="stat" data-filter="attention"><span class="stat-label">Due soon<span class="stat-icon">${icon('calendar')}</span></span><strong>${due.length}</strong><small>Next action within 30 days</small></button><button class="stat danger-stat" data-action="stat" data-filter="attention"><span class="stat-label">Expired dates<span class="stat-icon">${icon('alert')}</span></span><strong>${expired.length}</strong><small>Licence or support needs attention</small></button><button class="stat" data-action="stat" data-filter="attention"><span class="stat-label">Needs review<span class="stat-icon">${icon('edit')}</span></span><strong>${review.length}</strong><small>Confirm missing entitlement details</small></button></div><div class="dashboard-grid"><section class="panel"><div class="panel-head"><div><h2>Your licences<span class="count-label">${active.length}</span></h2><p>Quick access to your software and keys.</p></div><a class="text-link" href="#licences">View all ${icon('arrow')}</a></div>${licenceTable(active.slice(0, 5), true)}<div class="panel-foot"><span>Keys stay hidden until you choose to reveal them.</span>${icon('shield')}</div></section><div class="dashboard-side"><section class="panel"><div class="panel-head"><h2>Upcoming & overdue</h2><a class="text-link" href="#renewals">View all</a></div>${uniqueDue.length ? dueRows(uniqueDue.slice(0, 4)) : empty('All caught up', 'No date actions are due in the next 90 days.')}</section><section class="panel"><div class="panel-head"><h2>Recent activity</h2><a class="text-link" href="#activity">View all</a></div>${activityRows(db.activity.slice(0, 3))}</section></div></div>`;
+  return `${heading('Overview', 'Your software estate, at a glance.', addLicenceButton())}<div class="stats-grid"><button class="stat" data-action="stat" data-filter="current"><span class="stat-label">Total licences<span class="stat-icon">${icon('licence')}</span></span><strong>${active.length}</strong><small>Across ${new Set(active.map(l => l.vendor)).size} software vendors</small></button><button class="stat warning-stat" data-action="stat" data-filter="due_soon"><span class="stat-label">Due soon<span class="stat-icon">${icon('calendar')}</span></span><strong>${due.length}</strong><small>Next action within 30 days</small></button><button class="stat danger-stat" data-action="stat" data-filter="expired"><span class="stat-label">Expired dates<span class="stat-icon">${icon('alert')}</span></span><strong>${expired.length}</strong><small>Licence or support needs attention</small></button><button class="stat" data-action="stat" data-filter="review"><span class="stat-label">Needs review<span class="stat-icon">${icon('edit')}</span></span><strong>${review.length}</strong><small>Confirm missing entitlement details</small></button></div><div class="dashboard-grid"><section class="panel"><div class="panel-head"><div><h2>Your licences<span class="count-label">${active.length}</span></h2><p>Quick access to your software and keys.</p></div><a class="text-link" href="#licences">View all ${icon('arrow')}</a></div>${licenceTable(active.slice(0, 5), true)}<div class="panel-foot"><span>Keys stay hidden until you choose to reveal them.</span>${icon('shield')}</div></section><div class="dashboard-side"><section class="panel"><div class="panel-head"><h2>Upcoming & overdue</h2><a class="text-link" href="#renewals">View all</a></div>${uniqueDue.length ? dueRows(uniqueDue.slice(0, 4)) : empty('All caught up', 'No date actions are due in the next 90 days.')}</section><section class="panel"><div class="panel-head"><h2>Recent activity</h2><a class="text-link" href="#activity">View all</a></div>${activityRows(db.activity.slice(0, 3))}</section></div></div>`;
 }
 function licencesView() {
   const items = findLicences(db, query, filter, DEMO_DATE).sort((a, b) => sort === 'attention' ? attention(a, DEMO_DATE).sort - attention(b, DEMO_DATE).sort : a.title.localeCompare(b.title));
-  return `${heading('Licences', 'Everything you need, without the spreadsheet.', `${can(user, 'export') ? btn(`${icon('download')}<span class="export-label">Export</span>`, 'export', '', 'aria-label="Export metadata"') : ''}${addLicenceButton()}`)}<section class="panel"><div class="filters"><div class="filter-tabs" role="group" aria-label="Filter licences">${[['all','All licences'],['subscription','Subscriptions'],['perpetual','Perpetual'],['attention','Needs attention'],['spare','Spares'],['archived','Archived']].map(([v, label]) => `<button class="filter-button ${filter === v ? 'active' : ''}" data-action="filter" data-filter="${v}" aria-pressed="${filter === v}">${label}</button>`).join('')}</div><select id="licence-sort" class="select-clean" aria-label="Sort licences"><option value="name" ${sort === 'name' ? 'selected' : ''}>Name A–Z</option><option value="attention" ${sort === 'attention' ? 'selected' : ''}>Attention first</option></select></div>${licenceTable(items)}<div class="panel-foot"><span>${items.length} ${items.length === 1 ? 'licence' : 'licences'}${query ? ` matching “${e(query)}”` : ''}</span><span>Sample date ${formatDate(DEMO_DATE)}</span></div></section>`;
+  return `${heading('Licences', ({current:'Current records, including drafts. Retired and archived records are excluded.',due_soon:'Licences whose next action is due within 30 days.',expired:'Licences with expired rights or support coverage.',review:'Drafts and licences with entitlement details to confirm.'}[filter] || 'Everything you need, without the spreadsheet.'), `${can(user, 'export') ? btn(`${icon('download')}<span class="export-label">Export</span>`, 'export', '', 'aria-label="Export metadata"') : ''}${addLicenceButton()}`)}<section class="panel"><div class="filters"><div class="filter-tabs" role="group" aria-label="Filter licences">${[['all','All licences'],['current','Current records'],['due_soon','Due within 30 days'],['expired','Expired dates'],['review','Needs review'],['subscription','Subscriptions'],['perpetual','Perpetual'],['attention','Needs attention'],['spare','Spares'],['archived','Archived']].map(([v, label]) => `<button class="filter-button ${filter === v ? 'active' : ''}" data-action="filter" data-filter="${v}" aria-pressed="${filter === v}">${label}</button>`).join('')}</div><select id="licence-sort" class="select-clean" aria-label="Sort licences"><option value="name" ${sort === 'name' ? 'selected' : ''}>Name A–Z</option><option value="attention" ${sort === 'attention' ? 'selected' : ''}>Attention first</option></select></div>${licenceTable(items)}<div class="panel-foot"><span>${items.length} ${items.length === 1 ? 'licence' : 'licences'}${query ? ` matching “${e(query)}”` : ''}</span><span>Sample date ${formatDate(DEMO_DATE)}</span></div></section>`;
 }
 function keysPanel(l) {
   if (!can(user, 'secret')) return `<div class="notice">${icon('shield')} Keys are restricted in the Viewer role. Metadata and fictional EULAs remain available.</div>`;
@@ -173,7 +205,7 @@ function systemsView(id) {
 }
 function renewalsView() {
   const events = dueEvents(db, DEMO_DATE, true).filter(d => renewalFilter === 'snoozed' ? d.snoozeUntil && dayNumber(d.snoozeUntil) > dayNumber(DEMO_DATE) : renewalFilter === 'progress' ? d.status === 'In progress' && !(d.snoozeUntil && dayNumber(d.snoozeUntil)>dayNumber(DEMO_DATE)) : !(d.snoozeUntil && dayNumber(d.snoozeUntil)>dayNumber(DEMO_DATE))).filter(d=>!query || [d.licence.title,d.licence.owner,d.label].some(v=>v.toLowerCase().includes(query.toLowerCase())));
-  return `${heading('Renewals','The right action, before the next deadline.')}<section class="panel"><div class="filters"><div class="filter-tabs">${[['all','All due dates'],['progress','In progress'],['snoozed','Snoozed']].map(([v,t])=>`<button class="filter-button ${renewalFilter === v ? 'active' : ''}" aria-pressed="${renewalFilter === v}" data-action="renewal-filter" data-filter="${v}">${t}</button>`).join('')}</div><span class="small muted">Next 90 days & overdue</span></div>${events.length ? `<div class="table-scroll"><table class="data-table responsive-table"><thead><tr><th>Software</th><th>Event / date</th><th>Status</th><th>Action</th></tr></thead><tbody>${events.map(d=>`<tr><td class="title-cell"><div class="product-title">${productIcon(d.licence)}<div><a href="#licences/${d.licence.id}"><strong>${e(d.licence.title)}</strong></a><small>${e(d.licence.owner)}</small></div></div></td><td class="extra-cell">${e(d.label)}<small>${formatDate(d.date)}</small></td><td class="status-cell">${badge(d.snoozeUntil && renewalFilter === 'snoozed' ? `Until ${formatDate(d.snoozeUntil)}` : d.status || (d.days < 0 ? 'Overdue' : d.days === 0 ? 'Due today' : `In ${d.days} days`),d.status === 'In progress' ? 'purple' : d.days < 0 ? 'danger' : 'warning')}</td><td class="actions-cell">${can(user,'write') ? `<div class="cluster">${btn(d.status === 'In progress' ? 'Reopen' : 'Start action','due-progress','small-btn',`data-event="${d.id}"`)}${btn(renewalFilter === 'snoozed' ? 'Unsnooze' : 'Snooze','due-snooze','small-btn quiet',`data-event="${d.id}"`)}</div>` : '<span class="muted small">Read only</span>'}</td></tr>`).join('')}</tbody></table></div>` : empty('All caught up', 'No matching date actions in this view.')}<div class="panel-foot"><span>Rights, support and notice dates are tracked separately.</span></div></section>`;
+  return `${heading('Renewals','The right action, before the next deadline.')}<section class="panel"><div class="filters"><div class="filter-tabs">${[['all','All due dates'],['progress','In progress'],['snoozed','Snoozed']].map(([v,t])=>`<button class="filter-button ${renewalFilter === v ? 'active' : ''}" aria-pressed="${renewalFilter === v}" data-action="renewal-filter" data-filter="${v}">${t}</button>`).join('')}</div><span class="small muted">Next 90 days & overdue</span></div><p class="renewal-summary" role="status">${events.length} ${events.length === 1 ? 'date action' : 'date actions'} across ${new Set(events.map(event=>event.licence.id)).size} ${new Set(events.map(event=>event.licence.id)).size === 1 ? 'licence' : 'licences'}${query ? ` matching “${e(query)}”` : ''}. Each date is a separate action; a licence can appear more than once.</p>${events.length ? `<div class="table-scroll"><table class="data-table responsive-table"><thead><tr><th>Software</th><th>Event / date</th><th>Status</th><th>Action</th></tr></thead><tbody>${events.map(d=>`<tr><td class="title-cell"><div class="product-title">${productIcon(d.licence)}<div><a href="#licences/${d.licence.id}"><strong>${e(d.licence.title)}</strong></a><small>${e(d.licence.owner)}</small></div></div></td><td class="extra-cell">${e(d.label)}<small>${formatDate(d.date)}</small></td><td class="status-cell">${badge(d.snoozeUntil && renewalFilter === 'snoozed' ? `Until ${formatDate(d.snoozeUntil)}` : d.status || (d.days < 0 ? 'Overdue' : d.days === 0 ? 'Due today' : `In ${d.days} days`),d.status === 'In progress' ? 'purple' : d.days < 0 ? 'danger' : 'warning')}</td><td class="actions-cell">${can(user,'write') ? `<div class="cluster">${btn(d.status === 'In progress' ? 'Reopen' : 'Start action','due-progress','small-btn',`data-event="${d.id}"`)}${btn(renewalFilter === 'snoozed' ? 'Unsnooze' : 'Snooze','due-snooze','small-btn quiet',`data-event="${d.id}"`)}</div>` : '<span class="muted small">Read only</span>'}</td></tr>`).join('')}</tbody></table></div>` : empty('All caught up', 'No matching date actions in this view.')}<div class="panel-foot"><span>Rights, support and notice dates are tracked separately.</span></div></section>`;
 }
 function teamView() {
   return `${heading('People & access','A workspace for the whole ICT team.')}<div class="notice">Demo account previews, not real user administration. Shared accounts, server-enforced permissions and identity integration belong to the on-prem backend stage.</div><section class="panel team-table"><div class="panel-head"><h2>Demo users<span class="count-label">${USERS.length}</span></h2>${btn('Switch demo user','account','small-btn')}</div><div class="table-scroll"><table class="data-table"><thead><tr><th>Person</th><th>Role</th><th>Access preview</th></tr></thead><tbody>${USERS.map(u=>`<tr><td><div class="product-title">${avatar(u)}<div><strong>${e(u.name)}${user.id === u.id ? ' (you)' : ''}</strong><small>${e(u.title)}</small></div></div></td><td>${badge(u.role,'purple')}</td><td>${u.role === 'Custodian' ? 'Manage records, keys and allocations' : u.role === 'Operator' ? 'Read records and retrieve keys' : 'Read metadata and ordinary documents'}</td></tr>`).join('')}</tbody></table></div></section><section class="panel"><div class="panel-body"><h3>Built for shared use</h3><p class="hint">The next stage will connect this interface to the private on-prem service for individual sign-in, shared storage, revocation and audit. This demo intentionally keeps edits in the current tab; it does not synchronise data between users or devices.</p></div></section>`;
@@ -217,11 +249,38 @@ function formErrors(form, errors) {
   Object.entries(errors).forEach(([key,msg])=>{ const input=errorInput(key);if(input && input.setAttribute){input.setAttribute('aria-invalid','true');const group=input.closest('details');if(group)group.open=true;const note=document.createElement('small');note.className='field-error';note.id=`error-${key}`;note.textContent=msg;input.setAttribute('aria-describedby',note.id);input.closest('.field')?.append(note);} });
   block.focus();
 }
+function updatePoolCapacity() {
+  const summary = modal.querySelector('#pool-capacity');
+  const form = modal.querySelector('#licence-form');
+  if (!summary || !form) return;
+  const value = name => form.elements.namedItem(name)?.value || '';
+  const poolId = value('poolId');
+  summary.hidden = !poolId;
+  if (!poolId) return;
+  const pool = db.pools.find(item => item.id === poolId);
+  const source = licence(form.dataset.source);
+  const others = db.licences.filter(item => item.poolId === poolId && item.id !== form.dataset.id && !['retired','archived'].includes(item.lifecycle));
+  if (poolId === 'new' && source && !source.poolId && !['retired','archived'].includes(source.lifecycle)) others.push(source);
+  const held = others.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const purchased = value('poolQuantity') ? Number(value('poolQuantity')) : null;
+  const quantity = value('quantity') ? Number(value('quantity')) : null;
+  const unit = value('metric') === 'other' ? value('customUnit') || 'custom units' : value('metric').replaceAll('_', ' ');
+  const archived = licence(form.dataset.id)?.lifecycle === 'archived';
+  const retiring = value('licenceStatus') === 'retired';
+  const valid = Number.isSafeInteger(purchased) && purchased > 0 && Number.isSafeInteger(quantity) && quantity > 0 && others.every(item => Number.isSafeInteger(item.quantity) && item.quantity > 0);
+  const available = valid ? purchased - held : null;
+  const remaining = valid ? available - (archived ? 0 : quantity) : null;
+  const mismatch = pool && pool.metric !== value('metric');
+  summary.dataset.tone = !valid || mismatch || remaining < 0 ? 'warning' : 'neutral';
+  const number = value => value === null ? '—' : value;
+  summary.innerHTML = `<strong>Shared purchase capacity · ${e(unit)}</strong><div class="capacity-counts"><span>Purchased<strong>${number(purchased)}</strong></span><span>Held by other entries<strong>${held}</strong></span><span>Available for this entry<strong>${number(available)}</strong></span><span>${retiring && !archived ? 'Remaining if saved as draft' : 'Remaining after this entry'}<strong>${number(remaining)}</strong></span></div><p>${!valid ? 'Enter positive whole-number quantities to calculate the remaining capacity.' : mismatch ? 'Use the same unit as this shared purchase before saving.' : remaining < 0 ? `This ${retiring ? 'draft reservation' : 'entry'} exceeds the purchase by ${Math.abs(remaining)} ${e(unit)}. Reduce its quantity or review the recorded purchase.` : archived ? 'Archived entries do not hold current purchase capacity.' : retiring ? 'Saving a draft holds these units. Save licence with Retired status to release this entry from the purchase.' : 'Spare and reserved entries also hold purchased units. The purchased total does not increase when you add an entry.'}</p>`;
+}
 function syncPoolEditor(changed=false){
   const select=modal.querySelector('[name="poolId"]');if(!select)return;
   for(const name of ['poolName','poolQuantity']){const input=modal.querySelector(`[name="${name}"]`);if(input)input.closest('.field').hidden=!select.value;}
   if(changed){const pool=db.pools.find(p=>p.id===select.value);if(pool){modal.querySelector('[name="poolName"]').value=pool.name;modal.querySelector('[name="poolQuantity"]').value=pool.quantity;modal.querySelector('[name="metric"]').value=pool.metric;}}
   const metric=modal.querySelector('[name="metric"]');const custom=modal.querySelector('[name="customUnit"]');if(custom)custom.closest('.field').hidden=metric.value!=='other';
+  updatePoolCapacity();
 }
 function licenceEditor(id, sourceId) {
   requirePermission('write'); maskSecrets();
@@ -232,7 +291,7 @@ function licenceEditor(id, sourceId) {
   const section=(title,body,open=false)=>`<details class="editor-section" ${open?'open':''}><summary>${title}</summary><div class="form-grid">${body}</div></details>`;
   const poolOptions=[['','Standalone entitlement'],...db.pools.map(p=>[p.id,p.name]),['new','Create shared entitlement']];
   const basic=`${field('Software name','title',l.title,{required:true,full:true})}${field('Software version','softwareVersion',l.softwareVersion)}${field('Edition','edition',l.edition)}${field('Vendor','vendor',l.vendor,{required:true})}${field('Product family','product',l.product,{required:true})}${selectField('Specific category','category',CATEGORIES,l.category)}${field('Entitlement / purchase reference','reference',l.reference)}`;
-  const licensing=`${selectField('Licence type / duration basis','licenceType',LICENCE_TYPES.map(t=>[t,typeName(t)]),l.licenceType)}${selectField('Licence model / deployment method','licenceModel',LICENCE_MODELS.map(t=>[t,modelName(t)]),l.licenceModel)}${field('Duration / term','duration',l.duration,{placeholder:'e.g. 12 months or perpetual rights'})}${selectField('Payment model','paymentModel',['Once-off','Monthly','Annual','Multi-year','Consumption','Free','Once-off + annual SUMS','Other','Unknown'],l.paymentModel)}${selectField('Quantity unit of measure','metric',METRICS,l.metric)}${field('Entry quantity (users, cores, instances…)','quantity',l.quantity??'',{type:'number'})}${field('Custom unit label (if Other)','customUnit',l.customUnit)}${selectField('Licence status','licenceStatus',[['active','Active'],['retired','Retired'],['expired','Expired'],['evaluation','Evaluation']],l.licenceStatus)}${selectField('Activation status','activation',[['activated','Yes · activated'],['not_applied','No · not applied yet'],['not_applicable','Not applicable'],['unknown','Unknown']],l.activation)}${selectField('Holding / allocation','holding',[['allocated','Allocated / in use'],['spare','Spare stock'],['reserved','Reserved']],l.holding)}${selectField('Shared purchased entitlement','poolId',poolOptions,source&&!source.poolId?'new':l.poolId,true)}${field('Shared entitlement name','poolName',pool?.name||(source?`${source.product} · shared purchase`:''),{full:true})}${field('Purchased pool quantity','poolQuantity',pool?.quantity??source?.quantity??'',{type:'number'})}${field('Subset / allocation label','subsetLabel',l.subsetLabel)}<div class="full-span hint">Shared entries use the same purchased pool and unit. Entry quantities, including explicit spare/reserved subsets, must fit the purchased total. Each system keeps its own record, ownership and dates.</div>`;
+  const licensing=`${selectField('Licence type / duration basis','licenceType',LICENCE_TYPES.map(t=>[t,typeName(t)]),l.licenceType)}${selectField('Licence model / deployment method','licenceModel',LICENCE_MODELS.map(t=>[t,modelName(t)]),l.licenceModel)}${field('Duration / term','duration',l.duration,{placeholder:'e.g. 12 months or perpetual rights'})}${selectField('Payment model','paymentModel',['Once-off','Monthly','Annual','Multi-year','Consumption','Free','Once-off + annual SUMS','Other','Unknown'],l.paymentModel)}${selectField('Quantity unit of measure','metric',METRICS,l.metric)}${field('Entry quantity (users, cores, instances…)','quantity',l.quantity??'',{type:'number'})}<div id="pool-capacity" class="pool-capacity full-span" role="status" aria-live="polite" aria-atomic="true" hidden></div>${field('Custom unit label (if Other)','customUnit',l.customUnit)}${selectField('Licence status','licenceStatus',[['active','Active'],['retired','Retired'],['expired','Expired'],['evaluation','Evaluation']],l.licenceStatus)}${selectField('Activation status','activation',[['activated','Yes · activated'],['not_applied','No · not applied yet'],['not_applicable','Not applicable'],['unknown','Unknown']],l.activation)}${selectField('Holding / allocation','holding',[['allocated','Allocated / in use'],['spare','Spare stock'],['reserved','Reserved']],l.holding)}${selectField('Shared purchased entitlement','poolId',poolOptions,source&&!source.poolId?'new':l.poolId,true)}${field('Shared entitlement name','poolName',pool?.name||(source?`${source.product} · shared purchase`:''),{full:true})}${field('Purchased pool quantity','poolQuantity',pool?.quantity??source?.quantity??'',{type:'number'})}${field('Subset / allocation label','subsetLabel',l.subsetLabel)}<div class="full-span hint">Shared entries use the same purchased pool and unit. Entry quantities, including explicit spare/reserved subsets, must fit the purchased total. Each system keeps its own record, ownership and dates.</div>`;
   const ownership=`${field('Project / allocation owner','project',l.project)}${field('Legal licence owner','legalOwner',l.legalOwner)}${field('Procured by','procuredBy',l.procuredBy)}${selectField('Licence custodian','owner',USERS.map(u=>u.name),l.owner)}<div class="field full-span"><label for="f-rights">Usage rights / permitted users</label><textarea id="f-rights" name="rights" maxlength="3000">${e(l.rights)}</textarea></div>${selectField('Transferable / reassignable','transferable',[['yes','Yes'],['no','No'],['conditional','Conditional'],['unknown','Unknown']],l.transferable)}${field('Transfer conditions','transferConditions',l.transferConditions,{full:true})}${field('Vendor portal link','portalUrl',l.portalUrl,{full:true,placeholder:'https://… (no credentials or keys)'})}`;
   const dates=`${dateField('Purchase date','purchaseDate',l.purchaseDate)}${dateField('Licence start','licenceStart',l.licenceStart)}${dateField('Licence end','licenceEnd',l.licenceEnd)}${dateField('Licence renewal date','renewalDate',l.renewalDate)}${dateField('Renewal notice / action date','renewalNotice',l.renewalNotice)}`;
   const sum=`${field('SUM/SUMS period','sumPeriod',l.sumPeriod,{full:true,placeholder:'Support, updates & maintenance · e.g. 12 months'})}${field('SUM/SUMS contract reference','sumReference',l.sumReference,{full:true})}${dateField('SUM coverage start','supportStart',l.supportStart)}${dateField('SUM coverage end','supportEnd',l.supportEnd)}${dateField('SUM renewal date (also for perpetual licences)','sumRenewal',l.sumRenewal)}`;
@@ -257,7 +316,7 @@ function saveLicence(form,mode) {
   if(data.primarySystemId&&record.holding!=='allocated')errors.primarySystemId='Spare/reserved entries cannot be assigned to a running system.';
   let pool=data.poolId==='new'?{id:uid('pool'),name:data.poolName.trim(),quantity:Number(data.poolQuantity),metric:record.metric}:data.poolId?{...db.pools.find(p=>p.id===data.poolId),name:data.poolName.trim(),quantity:Number(data.poolQuantity)}:null;
   record.poolId=pool?.id||'';
-  if(pool){if(!pool.name)errors.poolName='Enter a shared entitlement name.';const poolState=source&&!source.poolId&&data.poolId==='new'?{...db,licences:db.licences.map(l=>l.id===source.id?{...l,poolId:pool.id}:l)}:db;const poolError=validatePoolEntry(poolState,record,pool,old?.id);if(poolError)errors.poolQuantity=poolError;}
+  if(pool){if(!pool.name)errors.poolName='Enter a shared entitlement name.';const poolState=source&&!source.poolId&&data.poolId==='new'?{...db,licences:db.licences.map(l=>l.id===source.id?{...l,poolId:pool.id}:l)}:db;const poolError=validatePoolEntry(poolState,record,pool,old?.id);if(poolError){const changedPurchase=data.poolId!=='new'&&db.pools.find(p=>p.id===data.poolId)?.quantity!==pool.quantity;errors[pool.metric!==record.metric?'metric':changedPurchase||!Number.isSafeInteger(pool.quantity)||pool.quantity<1?'poolQuantity':'quantity']=poolError;}}
   if(old&&data.primarySystemId===linkedSystems(db,old.id).find(x=>x.association.purpose!=='reference')?.id&&record.quantity!==null&&record.quantity<allocated(db,old.id))errors.quantity='Quantity cannot be below the existing system allocation.';
   if(Object.keys(errors).length){formErrors(form,errors);return;}
   if(pool){const idx=db.pools.findIndex(p=>p.id===pool.id);if(idx>=0)db.pools[idx]=pool;else db.pools.push(pool);if(source&&!source.poolId){source.poolId=pool.id;source.revision++;}}
@@ -365,6 +424,8 @@ function signOut(){maskSecrets();closeModal(true);user=null;clearTimeout(idleTim
 
 async function action(name,el) {
   const id=el.dataset.id;
+  if(name==='accept-confirmation'){finishConfirmation(true);return;}
+  if(name==='cancel-confirmation'){finishConfirmation();return;}
   if(name==='login'){user=USERS.find(u=>u.id===document.querySelector('#demo-user').value)||USERS[0];if(!location.hash)location.hash='overview';render();resetIdle();return;}
   if(name==='toggle-nav'){document.querySelector('.sidebar')?.classList.toggle('open');document.querySelector('.mobile-nav-overlay')?.classList.toggle('open');el.setAttribute('aria-expanded',document.querySelector('.sidebar')?.classList.contains('open')?'true':'false');return;}
   if(name==='close-nav'){document.querySelector('.sidebar')?.classList.remove('open');document.querySelector('.mobile-nav-overlay')?.classList.remove('open');document.querySelector('.mobile-toggle')?.setAttribute('aria-expanded','false');document.querySelector('.mobile-toggle')?.focus();return;}
@@ -374,9 +435,9 @@ async function action(name,el) {
   if(name==='logout'){signOut();notify('Signed out of the demo.');return;}
   if(name==='reconnect'){render();if(!navigator.onLine)notify('Your device is still offline. Reconnect and try again.');return;}
   if(name==='reset'){openModal('Reset this demo?',`<div class="modal-body"><p class="hint">This restores the fictional sample records and clears changes and activity made in this tab.</p></div>`,`<div class="modal-foot">${btn('Keep changes','close-modal')}${btn('Reset demo','confirm-reset','primary')}</div>`);return;}
-  if(name==='confirm-reset'){db=createFixtures();mutationCount=0;query='';filter='all';shown.clear();closeModal(true);navigate('overview');render();notify('Demo reset to fictional sample data.');return;}
-  if(name==='clear-search'){query='';filter='all';render();return;}
-  if(name==='filter'||name==='stat'){filter=el.dataset.filter;if(name==='stat')query='';navigate('licences');render();return;}
+  if(name==='confirm-reset'){clearTimeout(searchTimer);db=createFixtures();mutationCount=0;query='';filter='all';sort='name';renewalFilter='all';shown.clear();closeModal(true);navigate('overview');render();notify('Demo reset to fictional sample data.');return;}
+  if(name==='clear-search'){clearTimeout(searchTimer);query='';filter='all';render();return;}
+  if(name==='filter'||name==='stat'){filter=el.dataset.filter;if(name==='stat'){clearTimeout(searchTimer);query='';}navigate('licences');render();return;}
   if(name==='renewal-filter'){renewalFilter=el.dataset.filter;render();return;}
   if(name==='quick-copy'||name==='copy'){await retrieveKey(id,el.dataset.secret,true);return;}
   if(name==='reveal'){await retrieveKey(id,el.dataset.secret);return;}
@@ -413,7 +474,7 @@ async function action(name,el) {
   if(name==='toggle-input'){const input=modal.querySelector('[data-secret-input]');input.type=input.type==='password'?'text':'password';el.setAttribute('aria-pressed',String(input.type==='text'));el.innerHTML=icon(input.type==='text'?'eyeOff':'eye');return;}
   if(name==='paste'){const input=modal.querySelector('[data-secret-input]');try{if(!navigator.clipboard?.readText)throw Error();input.value=await navigator.clipboard.readText();modalDirty=true;input.focus();notify('Pasted into the fictional key field.');}catch{input.focus();notify('Paste using Ctrl+V, Command+V or your device’s Paste action.');}return;}
   if(name==='install'&&installPrompt){const prompt=installPrompt;installPrompt=null;await prompt.prompt();await prompt.userChoice;closeModal(true);return;}
-  if(name==='update'&&waitingWorker){if((mutationCount||modalDirty)&&!confirm('Applying the update reloads this tab and resets your fictional demo edits. Continue?'))return;mutationCount=0;modalDirty=false;navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload(),{once:true});waitingWorker.postMessage({type:'ACTIVATE_UPDATE'});return;}
+  if(name==='update'&&waitingWorker){if(mutationCount||modalDirty)requestConfirmation('Apply app update?', 'Applying the update reloads this tab and resets your fictional demo changes. Keep working to review them first.', 'Update and reset demo', applyAppUpdate, 'Keep working');else applyAppUpdate();return;}
 }
 
 document.addEventListener('click',event=>{const button=event.target.closest('[data-action]');if(!button||button.disabled)return;event.preventDefault();resetIdle();Promise.resolve(action(button.dataset.action,button)).catch(error=>notify(error.message||'This action could not be completed.'));});
@@ -435,34 +496,36 @@ document.addEventListener('submit',async event=>{
 let searchTimer;
 document.addEventListener('input',event=>{
   if(event.target.closest('#modal'))modalDirty=true;
+  if(['quantity','poolQuantity','customUnit'].includes(event.target.name))updatePoolCapacity();
   if(event.target.id==='search'){
     clearTimeout(searchTimer);const value=event.target.value;const pos=event.target.selectionStart;
     searchTimer=setTimeout(()=>{query=value;const p=route()[0];if(!['licences','systems','renewals','activity'].includes(p)||route()[1]){history.pushState(null,'','#licences');previousHash=location.hash;maskSecrets();}render();requestAnimationFrame(()=>{const input=document.querySelector('#search');if(input){input.focus();try{input.setSelectionRange(pos,pos);}catch{}}});},160);
   }
 });
 document.addEventListener('change',event=>{
-  const input=event.target;if(input.name==='poolId'||input.name==='metric')syncPoolEditor(input.name==='poolId');if(input.id==='licence-sort'){sort=input.value;render();}
+  const input=event.target;if(['poolId','metric','holding','licenceStatus'].includes(input.name))syncPoolEditor(input.name==='poolId');if(input.id==='licence-sort'){sort=input.value;render();}
   if(input.dataset.dateState){const date=modal.querySelector(`[name="${input.dataset.dateState}"]`);date.disabled=input.value!=='known';if(date.disabled)date.value='';}
   if(input.name==='licenceType'&&modal.querySelector('#licence-form')){const select=modal.querySelector('[name="licenceEndState"]');if(input.value==='perpetual'){select.value='not_applicable';}else if(select.value==='not_applicable')select.value='unknown';select.dispatchEvent(new Event('change',{bubbles:true}));}
   if(input.name==='purpose'&&modal.querySelector('#association-form')){const units=modal.querySelector('[name="units"]');units.disabled=input.value!=='allocation';}
 });
 modal.addEventListener('cancel',event=>{event.preventDefault();closeModal();});
-modal.addEventListener('close',()=>{modal.querySelectorAll('[data-secret-input]').forEach(n=>n.value='');modalDirty=false;});
+modal.addEventListener('close',()=>{if(!modal.open){modal.querySelectorAll('[data-secret-input]').forEach(n=>n.value='');modalDirty=false;}});
+confirmation?.addEventListener('cancel',event=>{event.preventDefault();finishConfirmation();});
 document.addEventListener('keydown',event=>{
   resetIdle();if(event.key==='/'&&!modal.open&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)&&user){event.preventDefault();document.querySelector('#search')?.focus();}
-  if(event.key==='Escape'&&!modal.open){action('close-nav',document.createElement('button'));maskSecrets();}
+  if(event.key==='Escape'&&!modal.open&&!confirmation?.open){action('close-nav',document.createElement('button'));maskSecrets();}
 });
 document.addEventListener('pointerdown',resetIdle,{passive:true});
 let previousHash=location.hash;
 window.addEventListener('hashchange',()=>{
   clearTimeout(searchTimer);
-  if(modal.open&&modalDirty&&!confirm('Discard your unsaved changes?')){history.replaceState(null,'',previousHash||'#overview');return;}
+  if(modal.open&&modalDirty){const destination=location.hash;history.pushState(null,'',previousHash||'#overview');requestConfirmation('Leave without saving?', 'Keep editing to preserve your changes, or discard them and leave this form.', 'Discard and leave', ()=>{closeModal(true);navigate(destination.slice(1));});return;}
   if(modal.open)closeModal(true);maskSecrets();previousHash=location.hash;render();window.scrollTo(0,0);
 });
 window.addEventListener('blur',maskSecrets);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)maskSecrets();});
 window.addEventListener('offline',()=>{
-  maskSecrets();modal.querySelectorAll('[data-secret-input]').forEach(input=>input.value='');
+  finishConfirmation();maskSecrets();modal.querySelectorAll('[data-secret-input]').forEach(input=>input.value='');
   if(modal.open&&modal.querySelector('form')){
     let notice=modal.querySelector('[data-offline-editor]');if(!notice){notice=document.createElement('div');notice.className='notice';notice.dataset.offlineEditor='';notice.setAttribute('role','status');modal.querySelector('form').prepend(notice);}
     notice.textContent='Server unavailable. Your unsaved metadata is retained in this tab. Reconnect before saving. The unsaved dummy key was cleared; enter it again after reconnecting.';
