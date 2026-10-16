@@ -20,3 +20,12 @@ dialog{border:1px solid var(--line);border-radius:16px;padding:0;background:#fff
 
 /* Daronmont reference palette: navy #171345, cyan #00b8ec, grey #eaeaeb / #30323d. */
 h1,h2,h3,.brand,.btn{color:#171345}.login-story h1,.login-story .brand,.sidebar .brand{color:#fff}.sidebar{background:#171345}.login-story{background:#30323d}.skip-link{color:#171345}
+
+/* Keep small count text readable and phone actions easy to operate by touch. */
+.nav-count{color:#171345}
+.form-error a{text-decoration:underline;text-underline-offset:2px}
+dialog :is(input,select,textarea,summary){scroll-margin-block:90px}
+@media(max-width:767px){.btn,.btn.small-btn,.icon-btn,.filter-button,.account-button,.select-clean,.field input,.field select,.field textarea{min-height:44px}.icon-btn,.responsive-table .row-actions .icon-btn{min-width:44px;width:44px;height:44px}.key-control .btn,.key-control .icon-btn{min-height:44px}.text-link{min-height:44px;display:inline-flex;align-items:center}.demo-strip{align-items:center}.demo-strip .text-link{min-height:32px}.topbar .account-button{min-width:44px;justify-content:center}}
+
+/* Closed phone navigation must also leave the keyboard and accessibility tree. */
+@media(max-width:767px){.sidebar:not(.open){visibility:hidden}.sidebar.open{visibility:visible}}

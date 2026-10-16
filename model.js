@@ -18,11 +18,12 @@ export function poolBalance(state, poolId, excludeId) {
 }
 export function validatePoolEntry(state,record,pool,excludeId=record.id) {
   if(!pool)return '';
-  if(!Number.isInteger(pool.quantity)||pool.quantity<1)return 'Enter the purchased pool quantity as a positive whole number.';
+  if(!Number.isSafeInteger(pool.quantity)||pool.quantity<1)return 'Enter the purchased pool quantity as a positive whole number.';
   if(pool.metric!==record.metric)return 'All entries in a shared entitlement must use the same unit of measure.';
-  if(record.quantity===null)return 'A shared entitlement entry needs a known quantity.';
+  if(!Number.isSafeInteger(record.quantity)||record.quantity<1)return 'A shared entitlement entry needs a positive whole-number quantity.';
   const others=state.licences.filter(l=>l.poolId===pool.id&&l.id!==excludeId&&!['retired','archived'].includes(l.lifecycle));
   if(others.some(l=>l.metric!==pool.metric))return 'Existing pool entries use a different unit. Keep the pool unit consistent.';
+  if(others.some(l=>!Number.isSafeInteger(l.quantity)||l.quantity<1))return 'Review the unknown or invalid quantities in existing pool entries before changing this purchase.';
   const held=others.reduce((n,l)=>n+(l.quantity||0),0)+( ['retired','archived'].includes(record.lifecycle)?0:record.quantity );
   if(held>pool.quantity)return `Entries would hold ${held} ${pool.metric} units, exceeding the ${pool.quantity} purchased. Reduce a spare/subset entry or correct the purchased pool quantity.`;
   return '';
@@ -53,7 +54,7 @@ export function dateStatus(fact, today) {
   if (fact?.state === 'not_applicable') return { tone: 'neutral', label: 'Not applicable', days: null };
   if (!fact || fact.state !== 'known') return { tone: 'neutral', label: 'Unknown', days: null };
   const days = dayNumber(fact.date) - dayNumber(today);
-  return { days, tone: days < 0 ? 'danger' : days <= 30 ? 'warning' : 'success', label: days < 0 ? 'Expired' : days === 0 ? 'Due today' : days <= 90 ? 'Upcoming' : 'Current' };
+  return { days, tone: days < 0 ? 'danger' : days <= 90 ? 'warning' : 'success', label: days < 0 ? 'Expired' : days === 0 ? 'Due today' : days <= 90 ? 'Upcoming' : 'Current' };
 }
 export function attention(licence, today) {
   if (licence.lifecycle === 'archived' || licence.lifecycle === 'retired') return { tone: 'neutral', label: licence.lifecycle === 'archived' ? 'Archived' : 'Retired', sort: 99999 };
@@ -64,8 +65,8 @@ export function attention(licence, today) {
   const support = dateStatus(licence.supportEnd, today);
   if (support.days !== null && support.days < 0) return { tone: 'warning', label: 'Support expired', sort: support.days };
   const dates = Object.keys(DATE_FIELDS).map(k => ({ key: k, ...dateStatus(licence[k], today) })).filter(s => s.days !== null).sort((a, b) => a.days - b.days);
-  if (dates[0]?.days <= 30) return { tone: 'warning', label: dates[0].days === 0 ? 'Action due today' : 'Due soon', sort: dates[0].days };
-  if (licence.licenceType === 'unknown' || licence.licenceEnd?.state === 'unknown') return { tone: 'neutral', label: 'Needs review', sort: 99997 };
+  if (dates[0]?.days <= 90) return { tone: 'warning', label: dates[0].days < 0 ? 'Action overdue' : dates[0].days === 0 ? 'Action due today' : 'Due soon', sort: dates[0].days };
+  if (licence.licenceType === 'unknown' || !licence.licenceEnd || licence.licenceEnd.state === 'unknown') return { tone: 'neutral', label: 'Needs review', sort: 99997 };
   return { tone: 'success', label: licence.licenceStatus === 'evaluation' || ['trial','evaluation'].includes(licence.licenceType) ? 'Evaluation' : 'Current', sort: dates[0]?.days ?? 99996 };
 }
 export function allocated(state, id) { return state.associations.filter(a => a.licenceId === id && a.purpose === 'allocation').reduce((sum, a) => sum + a.units, 0); }
@@ -89,8 +90,13 @@ export function matchLabel(state, licence, query) {
     if (s.serviceTag?.toLowerCase().includes(q)) return `Service tag: ${s.serviceTag}`;
     if (s.hostname?.toLowerCase().includes(q)) return `System: ${s.hostname}`;
     if (s.environment?.toLowerCase().includes(q)) return `Environment: ${s.environment}`;
+    if (s.name?.toLowerCase().includes(q)) return `System name: ${s.name}`;
+    if (s.location?.toLowerCase().includes(q)) return `Location: ${s.location}`;
   }
-  return `Matched ${[licence.vendor, licence.product, licence.reference, licence.owner].find(v => v?.toLowerCase().includes(q)) || licence.title}`;
+  for (const [key,label] of Object.entries({title:'Software name',vendor:'Vendor',product:'Product',reference:'Reference',edition:'Edition',softwareVersion:'Version',category:'Category',project:'Project',legalOwner:'Legal owner',procuredBy:'Procured by',owner:'Custodian',subsetLabel:'Subset'})) {
+    if (licence[key]?.toLowerCase().includes(q)) return `${label}: ${licence[key]}`;
+  }
+  return '';
 }
 export function dueEvents(state, today, includeSnoozed = false) {
   return state.licences.filter(l => l.lifecycle === 'active').flatMap(l => Object.entries(DATE_FIELDS).flatMap(([field, label]) => {
@@ -111,9 +117,9 @@ export function validateLicence(record) {
   if (record.lifecycle === 'active') {
     if (!record.owner?.trim()) errors.owner = 'Choose a custodian.';
     if (record.licenceType === 'unknown') errors.licenceType = 'Confirm the licence type or save a draft.';
-    if (record.metric === 'unknown') errors.metric = 'Confirm the metric or save a draft.';
-    if (record.metric !== 'unrestricted' && (!Number.isInteger(record.quantity) || record.quantity < 1)) errors.quantity = 'Enter a positive whole number.';
-  } else if (record.quantity !== null && (!Number.isInteger(record.quantity) || record.quantity < 1)) errors.quantity = 'Enter a positive whole number or leave blank.';
+    if (!METRICS.includes(record.metric) || record.metric === 'unknown') errors.metric = 'Confirm the metric or save a draft.';
+    if (record.metric !== 'unrestricted' && (!Number.isSafeInteger(record.quantity) || record.quantity < 1)) errors.quantity = 'Enter a positive whole number.';
+  } else if (record.quantity !== null && (!Number.isSafeInteger(record.quantity) || record.quantity < 1)) errors.quantity = 'Enter a positive whole number or leave blank.';
   for (const field of Object.keys(DATE_FIELDS)) {
     const fact = record[field];
     if (!fact && ['renewalDate','sumRenewal'].includes(field)) continue;
@@ -143,7 +149,7 @@ export function validateAssociation(state, licence, association, ignoreId) {
   }
   if (state.associations.some(a => a.id !== ignoreId && a.licenceId === licence.id && a.systemId === association.systemId && a.purpose === association.purpose)) throw new Error('This system already has that relationship.');
   if (association.purpose === 'allocation') {
-    if (!Number.isInteger(association.units) || association.units < 1) throw new Error('Allocation units must be a positive whole number.');
+    if (!Number.isSafeInteger(association.units) || association.units < 1) throw new Error('Allocation units must be a positive whole number.');
     const others = state.associations.filter(a => a.id !== ignoreId && a.licenceId === licence.id && a.purpose === 'allocation').reduce((sum, a) => sum + a.units, 0);
     if (licence.quantity !== null && licence.metric !== 'unknown' && others + association.units > licence.quantity) throw new Error(`Only ${licence.quantity - others} ${licence.metric} units remain available.`);
   }

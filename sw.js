@@ -1,12 +1,13 @@
 // Only explicit, versioned public application files are cached. Never cache an
 // API response, customer record, document download or arbitrary navigation URL.
-const VERSION = 'licencemanager-shell-v6';
 const ROOT = new URL('./', self.location.href);
+const CACHE_PREFIX = `licencemanager-shell:${ROOT.pathname}:`;
+const VERSION = `${CACHE_PREFIX}v7`;
 const FILES = ['index.html','styles.css','app.js','model.js','demo-data.js','manifest.webmanifest','assets/icon.svg','assets/icon-192.png','assets/icon-512.png'];
 const allowed = new Set(FILES.map(path => new URL(path, ROOT).href));
 self.addEventListener('install', event => { event.waitUntil(caches.open(VERSION).then(cache => cache.addAll([...allowed].map(url => new Request(url, {cache: 'reload'}))))); });
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('licencemanager-shell-') && key !== VERSION).map(key => caches.delete(key)))).then(()=>self.clients.claim()));
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== VERSION).map(key => caches.delete(key)))).then(()=>self.clients.claim()));
 });
 self.addEventListener('message',event=>{if(event.data?.type==='ACTIVATE_UPDATE')self.skipWaiting();});
 self.addEventListener('fetch', event => {
@@ -16,7 +17,9 @@ self.addEventListener('fetch', event => {
   if (url.pathname.includes('/api/') || url.pathname.includes('/documents/')) return;
   const navigation = event.request.mode === 'navigate';
   if (navigation && (url.pathname === ROOT.pathname || url.pathname === new URL('index.html',ROOT).pathname)) {
-    event.respondWith(fetch(event.request).catch(() => caches.open(VERSION).then(cache => cache.match(new URL('index.html', ROOT).href))));
+    // Keep HTML and its imports on the same installed release. A network-first
+    // document could import the old cached scripts while an update is waiting.
+    event.respondWith(caches.open(VERSION).then(async cache => (await cache.match(new URL('index.html', ROOT).href)) || fetch(event.request)));
     return;
   }
   if (allowed.has(url.href)) {

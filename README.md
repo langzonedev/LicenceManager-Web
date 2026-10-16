@@ -8,6 +8,8 @@ Licence Manager is a proposed on-premises, browser-based tool for finding softwa
 
 **Status: v0.2 fictional browser/PWA prototype, 16 October 2026.** The expanded record model, navy/cyan palette, shared entitlement subsets and purchase-specific evidence are described in [v0.2 requirements](docs/EXPANDED_REQUIREMENTS.md). Real authentication, shared storage and production security controls are not implemented.
 
+See the [demonstration walkthrough](docs/DEMO_GUIDE.md) for a customer-facing tour and feedback instructions.
+
 ## Open the prototype
 
 The prototype is live on [GitHub Pages](https://langzonedev.github.io/LicenceManager-Web/). Pages is configured to publish through **GitHub Actions**. See [deployment runs](https://github.com/langzonedev/LicenceManager-Web/actions) for the latest version's deployment status.

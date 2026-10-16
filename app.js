@@ -109,16 +109,16 @@ function dueRows(events) {
 }
 function overview() {
   const active = db.licences.filter(l => !['retired', 'archived'].includes(l.lifecycle));
-  const due = active.filter(l => attention(l, DEMO_DATE).label === 'Due soon' || attention(l, DEMO_DATE).label === 'Action due today');
+  const due = active.filter(l => {const status=attention(l,DEMO_DATE);return status.sort>=0&&status.sort<=30&&status.tone==='warning';});
   const expired = active.filter(l => attention(l, DEMO_DATE).label.includes('expired'));
-  const review = active.filter(l => l.lifecycle === 'draft' || l.licenceType === 'unknown');
+  const review = active.filter(l => l.lifecycle === 'draft' || l.licenceType === 'unknown' || attention(l, DEMO_DATE).label === 'Needs review');
   const events = dueEvents(db, DEMO_DATE);
   const uniqueDue = events.filter((d, i, all) => all.findIndex(x => x.licence.id === d.licence.id) === i);
   return `${heading('Overview', 'Your software estate, at a glance.', addLicenceButton())}<div class="stats-grid"><button class="stat" data-action="stat" data-filter="all"><span class="stat-label">Total licences<span class="stat-icon">${icon('licence')}</span></span><strong>${active.length}</strong><small>Across ${new Set(active.map(l => l.vendor)).size} software vendors</small></button><button class="stat warning-stat" data-action="stat" data-filter="attention"><span class="stat-label">Due soon<span class="stat-icon">${icon('calendar')}</span></span><strong>${due.length}</strong><small>Next action within 30 days</small></button><button class="stat danger-stat" data-action="stat" data-filter="attention"><span class="stat-label">Expired dates<span class="stat-icon">${icon('alert')}</span></span><strong>${expired.length}</strong><small>Licence or support needs attention</small></button><button class="stat" data-action="stat" data-filter="attention"><span class="stat-label">Needs review<span class="stat-icon">${icon('edit')}</span></span><strong>${review.length}</strong><small>Confirm missing entitlement details</small></button></div><div class="dashboard-grid"><section class="panel"><div class="panel-head"><div><h2>Your licences<span class="count-label">${active.length}</span></h2><p>Quick access to your software and keys.</p></div><a class="text-link" href="#licences">View all ${icon('arrow')}</a></div>${licenceTable(active.slice(0, 5), true)}<div class="panel-foot"><span>Keys stay hidden until you choose to reveal them.</span>${icon('shield')}</div></section><div class="dashboard-side"><section class="panel"><div class="panel-head"><h2>Upcoming & overdue</h2><a class="text-link" href="#renewals">View all</a></div>${uniqueDue.length ? dueRows(uniqueDue.slice(0, 4)) : empty('All caught up', 'No date actions are due in the next 90 days.')}</section><section class="panel"><div class="panel-head"><h2>Recent activity</h2><a class="text-link" href="#activity">View all</a></div>${activityRows(db.activity.slice(0, 3))}</section></div></div>`;
 }
 function licencesView() {
   const items = findLicences(db, query, filter, DEMO_DATE).sort((a, b) => sort === 'attention' ? attention(a, DEMO_DATE).sort - attention(b, DEMO_DATE).sort : a.title.localeCompare(b.title));
-  return `${heading('Licences', 'Everything you need, without the spreadsheet.', `${can(user, 'export') ? btn(`${icon('download')}<span class="export-label">Export</span>`, 'export') : ''}${addLicenceButton()}`)}<section class="panel"><div class="filters"><div class="filter-tabs" role="group" aria-label="Filter licences">${[['all','All licences'],['subscription','Subscriptions'],['perpetual','Perpetual'],['attention','Needs attention'],['spare','Spares'],['archived','Archived']].map(([v, label]) => `<button class="filter-button ${filter === v ? 'active' : ''}" data-action="filter" data-filter="${v}" aria-pressed="${filter === v}">${label}</button>`).join('')}</div><select id="licence-sort" class="select-clean" aria-label="Sort licences"><option value="name" ${sort === 'name' ? 'selected' : ''}>Name A–Z</option><option value="attention" ${sort === 'attention' ? 'selected' : ''}>Attention first</option></select></div>${licenceTable(items)}<div class="panel-foot"><span>${items.length} ${items.length === 1 ? 'licence' : 'licences'}${query ? ` matching “${e(query)}”` : ''}</span><span>Sample date ${formatDate(DEMO_DATE)}</span></div></section>`;
+  return `${heading('Licences', 'Everything you need, without the spreadsheet.', `${can(user, 'export') ? btn(`${icon('download')}<span class="export-label">Export</span>`, 'export', '', 'aria-label="Export metadata"') : ''}${addLicenceButton()}`)}<section class="panel"><div class="filters"><div class="filter-tabs" role="group" aria-label="Filter licences">${[['all','All licences'],['subscription','Subscriptions'],['perpetual','Perpetual'],['attention','Needs attention'],['spare','Spares'],['archived','Archived']].map(([v, label]) => `<button class="filter-button ${filter === v ? 'active' : ''}" data-action="filter" data-filter="${v}" aria-pressed="${filter === v}">${label}</button>`).join('')}</div><select id="licence-sort" class="select-clean" aria-label="Sort licences"><option value="name" ${sort === 'name' ? 'selected' : ''}>Name A–Z</option><option value="attention" ${sort === 'attention' ? 'selected' : ''}>Attention first</option></select></div>${licenceTable(items)}<div class="panel-foot"><span>${items.length} ${items.length === 1 ? 'licence' : 'licences'}${query ? ` matching “${e(query)}”` : ''}</span><span>Sample date ${formatDate(DEMO_DATE)}</span></div></section>`;
 }
 function keysPanel(l) {
   if (!can(user, 'secret')) return `<div class="notice">${icon('shield')} Keys are restricted in the Viewer role. Metadata and fictional EULAs remain available.</div>`;
@@ -209,8 +209,12 @@ function formErrors(form, errors) {
   form.querySelectorAll('.field-error').forEach(n=>n.remove());
   form.querySelectorAll('[aria-invalid]').forEach(n=>{n.removeAttribute('aria-invalid');n.removeAttribute('aria-describedby');});
   if (!Object.keys(errors).length) return;
-  const block=document.createElement('div'); block.className='form-error';block.setAttribute('role','alert');block.tabIndex=-1;block.textContent=Object.values(errors).join(' ');form.prepend(block);
-  Object.entries(errors).forEach(([key,msg])=>{ const input=form.elements.namedItem(key);if(input && input.setAttribute){input.setAttribute('aria-invalid','true');const group=input.closest('details');if(group)group.open=true;const note=document.createElement('small');note.className='field-error';note.id=`error-${key}`;note.textContent=msg;input.setAttribute('aria-describedby',note.id);input.closest('.field')?.append(note);} });
+  const errorInput=key=>{const input=form.elements.namedItem(key);return input?.disabled&&form.elements.namedItem(`${key}State`)||input;};
+  const block=document.createElement('div'); block.className='form-error';block.setAttribute('role','alert');block.tabIndex=-1;
+  const heading=document.createElement('strong');heading.textContent='Please review the following fields:';block.append(heading);
+  const list=document.createElement('ul');
+  Object.entries(errors).forEach(([key,msg])=>{const input=errorInput(key);const label=(input?.labels?.[0]?.textContent||input?.getAttribute?.('aria-label'))?.replace(/\s*\*\s*$/,'').trim()||key;const item=document.createElement('li');if(input?.id){const link=document.createElement('a');link.href=`#${input.id}`;link.textContent=`${label}: ${msg}`;link.addEventListener('click',event=>{event.preventDefault();const group=input.closest('details');if(group)group.open=true;input.focus();});item.append(link);}else item.textContent=`${label}: ${msg}`;list.append(item);});block.append(list);form.prepend(block);
+  Object.entries(errors).forEach(([key,msg])=>{ const input=errorInput(key);if(input && input.setAttribute){input.setAttribute('aria-invalid','true');const group=input.closest('details');if(group)group.open=true;const note=document.createElement('small');note.className='field-error';note.id=`error-${key}`;note.textContent=msg;input.setAttribute('aria-describedby',note.id);input.closest('.field')?.append(note);} });
   block.focus();
 }
 function syncPoolEditor(changed=false){
@@ -233,8 +237,8 @@ function licenceEditor(id, sourceId) {
   const dates=`${dateField('Purchase date','purchaseDate',l.purchaseDate)}${dateField('Licence start','licenceStart',l.licenceStart)}${dateField('Licence end','licenceEnd',l.licenceEnd)}${dateField('Licence renewal date','renewalDate',l.renewalDate)}${dateField('Renewal notice / action date','renewalNotice',l.renewalNotice)}`;
   const sum=`${field('SUM/SUMS period','sumPeriod',l.sumPeriod,{full:true,placeholder:'Support, updates & maintenance · e.g. 12 months'})}${field('SUM/SUMS contract reference','sumReference',l.sumReference,{full:true})}${dateField('SUM coverage start','supportStart',l.supportStart)}${dateField('SUM coverage end','supportEnd',l.supportEnd)}${dateField('SUM renewal date (also for perpetual licences)','sumRenewal',l.sumRenewal)}`;
   const system=selectField('System / device for this entry','primarySystemId',[['','Not assigned / spare stock'],...db.systems.map(x=>[x.id,`${x.name} · ${x.location||x.hostname}`])],source?'':linkedSystems(db,l.id).find(x=>x.association.purpose!=='reference')?.id||'',true);
-  const key=`<div class="field full-span"><label for="f-key">${id?'Optional replacement dummy key':'Optional dummy key'}</label><div class="input-action"><input id="f-key" data-secret-input name="key" type="password" placeholder="DEMO-NOT-VALID-…" autocomplete="off" spellcheck="false" maxlength="4096"><button type="button" class="icon-btn" data-action="toggle-input" aria-label="Show or hide key input" aria-pressed="false">${icon('eye')}</button><button type="button" class="btn small-btn" data-action="paste">Paste</button></div><small>Use a fictional value beginning DEMO-. Keys already held are never prefilled.</small></div>`;
-  const body=`<form id="licence-form" class="modal-body" data-id="${id||''}" data-source="${sourceId||''}" data-revision="${id?l.revision:0}" novalidate><div class="notice">Fictional demo only. Changes reset on refresh.${source?' This creates a separate system entry. Review its quantity, owner and dates; the shared purchased total is not increased automatically.':''}</div>${section('Software',basic,true)}${section('Licence, quantity & allocation',licensing,Boolean(source))}${section('System & activation key',system+key)}${section('Ownership & usage rights',ownership)}${section('Purchase, duration & renewal dates',dates)}${section('Support, updates & maintenance (SUM/SUMS)',sum)}${section('General notes',`<div class="field full-span"><label for="f-notes">Notes</label><textarea id="f-notes" name="notes" maxlength="3000">${e(l.notes)}</textarea></div>`)}</form>`;
+  const key=`<div class="field full-span"><label for="f-key">${id?'Optional replacement dummy key':'Optional dummy key'}</label><div class="input-action"><input id="f-key" data-secret-input name="key" type="password" placeholder="DEMO-NOT-VALID-…" autocomplete="new-password" spellcheck="false" maxlength="4096"><button type="button" class="icon-btn" data-action="toggle-input" aria-label="Show or hide key input" aria-pressed="false">${icon('eye')}</button><button type="button" class="btn small-btn" data-action="paste">Paste</button></div><small>Use a fictional value beginning DEMO-. Keys already held are never prefilled.</small></div>`;
+  const body=`<form id="licence-form" autocomplete="off" class="modal-body" data-id="${id||''}" data-source="${sourceId||''}" data-revision="${id?l.revision:0}" novalidate><div class="notice">Fictional demo only. Changes reset on refresh.${source?' This creates a separate system entry. Review its quantity, owner and dates; the shared purchased total is not increased automatically.':''}</div>${section('Software',basic,true)}${section('Licence, quantity & allocation',licensing,Boolean(source))}${section('System & activation key',system+key)}${section('Ownership & usage rights',ownership)}${section('Purchase, duration & renewal dates',dates)}${section('Support, updates & maintenance (SUM/SUMS)',sum)}${section('General notes',`<div class="field full-span"><label for="f-notes">Notes</label><textarea id="f-notes" name="notes" maxlength="3000">${e(l.notes)}</textarea></div>`)}</form>`;
   const foot=`<div class="modal-foot">${btn('Cancel','close-modal','quiet','type="button"')}<button class="btn" type="submit" form="licence-form" name="saveMode" value="draft">Save draft</button><button class="btn primary" type="submit" form="licence-form" name="saveMode" value="active">Save licence</button></div>`;
   openModal(id?'Edit licence':source?'Add system entry':'Add licence',body,foot,'licence');
   syncPoolEditor();
@@ -416,7 +420,7 @@ document.addEventListener('click',event=>{const button=event.target.closest('[da
 document.addEventListener('submit',async event=>{
   const form=event.target;if(!(form instanceof HTMLFormElement))return;event.preventDefault();
   try{
-    if(form.id==='global-search'){query=new FormData(form).get('query').trim();if(!['systems','renewals','activity'].includes(route()[0]))navigate('licences');else render();return;}
+    if(form.id==='global-search'){clearTimeout(searchTimer);query=new FormData(form).get('query').trim();if(!['systems','renewals','activity'].includes(route()[0]))navigate('licences');else render();return;}
     if(form.id==='licence-form')saveLicence(form,event.submitter?.value||'draft');
     if(form.id==='system-form')saveSystem(form);
     if(form.id==='association-form')saveAssociation(form);
@@ -451,13 +455,21 @@ document.addEventListener('keydown',event=>{
 document.addEventListener('pointerdown',resetIdle,{passive:true});
 let previousHash=location.hash;
 window.addEventListener('hashchange',()=>{
+  clearTimeout(searchTimer);
   if(modal.open&&modalDirty&&!confirm('Discard your unsaved changes?')){history.replaceState(null,'',previousHash||'#overview');return;}
   if(modal.open)closeModal(true);maskSecrets();previousHash=location.hash;render();window.scrollTo(0,0);
 });
 window.addEventListener('blur',maskSecrets);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)maskSecrets();});
-window.addEventListener('offline',()=>{maskSecrets();closeModal(true);render();notify('Offline. Reconnect to open the workspace.');});
-window.addEventListener('online',()=>{render();notify('Connection restored.');});
+window.addEventListener('offline',()=>{
+  maskSecrets();modal.querySelectorAll('[data-secret-input]').forEach(input=>input.value='');
+  if(modal.open&&modal.querySelector('form')){
+    let notice=modal.querySelector('[data-offline-editor]');if(!notice){notice=document.createElement('div');notice.className='notice';notice.dataset.offlineEditor='';notice.setAttribute('role','status');modal.querySelector('form').prepend(notice);}
+    notice.textContent='Server unavailable. Your unsaved metadata is retained in this tab. Reconnect before saving. The unsaved dummy key was cleared; enter it again after reconnecting.';
+  }else closeModal(true);
+  render();notify('Server unavailable. Unsaved metadata is retained; reconnect to continue.');
+});
+window.addEventListener('online',()=>{modal.querySelector('[data-offline-editor]')?.remove();render();notify('Connection restored. You can review and save your retained changes.');});
 window.addEventListener('beforeunload',event=>{if(mutationCount||modalDirty){event.preventDefault();event.returnValue='';}});
 window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;});
 window.addEventListener('appinstalled',()=>{installPrompt=null;notify('App installed.');});

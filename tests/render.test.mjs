@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { webcrypto } from 'node:crypto';
 import * as model from '../model.js';
 import * as data from '../demo-data.js';
-const source=(await readFile(new URL('../app.js',import.meta.url),'utf8')).replace(/^import .*;\n/gm,'');
+const source=(await readFile(new URL('../app.js',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'');
 function harness(){
   const node={innerHTML:'',textContent:'',classList:{add(){},remove(){},toggle(){}},addEventListener(){},querySelector(){return null;},querySelectorAll(){return[];},dataset:{},open:false,close(){this.open=false;},showModal(){this.open=true;}};
   const app={...node},modal={...node},toast={...node};
@@ -59,4 +59,9 @@ test('expanded editors expose distinct ownership, SUM and purchase evidence cont
 
 test('past start dates say Started rather than reporting an expired licence',()=>{
  const {context,app}=harness();vm.runInContext("user=USERS[0];location.hash='#licences/lm-001';render();",context);assert.match(app.innerHTML,/Started/);assert.doesNotMatch(app.innerHTML,/Licence expired/);
+});
+
+test('metadata export keeps an accessible name when its visible label is hidden on phones',()=>{
+ const {context,app}=harness();vm.runInContext("user=USERS[0];location.hash='#licences';render();",context);
+ assert.match(app.innerHTML,/<button[^>]*data-action="export"[^>]*aria-label="Export metadata"/);
 });
