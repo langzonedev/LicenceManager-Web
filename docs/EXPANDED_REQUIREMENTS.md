@@ -2,7 +2,7 @@
 
 16 October 2026. This extends the original P1 specification; these field meanings take precedence where the initial design was narrower. This remains a public fictional demo with tab-local memory, not a production licence vault.
 
-The product palette is **navy `#171345`**, with **cyan `#40c0ea`** accents. Pale surfaces retain readable tables/forms. Cyan buttons use navy text for contrast; links use a darker cyan on white.
+The product palette is **navy `#171345`**, with **cyan `#00b8ec`** accents. Following the operator’s Daronmont reference-site request, neutral grey `#eaeaeb` surfaces and charcoal `#30323d` replace lavender tones. Palette sampled from rendered https://daronmont.com.au/ on 16 October 2026; this is colour inspiration only. Pale surfaces retain readable tables/forms. Cyan buttons use navy text for contrast; links use a darker cyan on white.
 
 ## Requirement coverage
 
