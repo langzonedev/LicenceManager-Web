@@ -2,13 +2,15 @@
 
 Software licence information, ready when ICT needs it.
 
+**[Open the live Licence Manager app →](https://langzonedev.github.io/LicenceManager-Web/)**
+
 Licence Manager is a proposed on-premises, browser-based tool for finding software entitlements, retrieving licence keys, checking renewal dates and seeing which systems use each licence.
 
 **Status: P1 fictional browser/PWA prototype implemented, 16 October 2026.** Public demo publication uses the included GitHub Pages workflow. Real authentication, shared storage and production security controls are not implemented.
 
 ## Open the prototype
 
-Intended Pages address: **https://langzonedev.github.io/LicenceManager-Web/**. The repository's Pages source must be set to **GitHub Actions** before the deployment workflow can publish. Check the [Actions run](https://github.com/langzonedev/LicenceManager-Web/actions) for actual deployment status; the intended address alone does not establish that hosting is enabled.
+The prototype is live on [GitHub Pages](https://langzonedev.github.io/LicenceManager-Web/). Pages is configured to publish through **GitHub Actions**. See [deployment runs](https://github.com/langzonedev/LicenceManager-Web/actions) for future updates.
 
 Select **Alex Morgan · Custodian**, then **Open demo workspace**. No password is needed. The account menu also previews Sam Taylor (Operator) and Jordan Lee (Viewer).
 
