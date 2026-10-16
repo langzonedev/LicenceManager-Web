@@ -2,7 +2,7 @@
 
 ## Authority and scope
 
-Follow the current operator request, then these project instructions and the linked product requirements. This repository is public. Current authorised outcome: documentation on `main`; application implementation follows in a separate task. Direct commits to `main` were authorised for this documentation pack. That authority does not publish a running service or authorise future production releases.
+Follow the current operator request, then these project instructions and the linked product requirements. This repository is public. On 16 October 2026 the operator extended the documentation task to implement and publish the fictional responsive PWA prototype through GitHub Pages, retaining direct-to-main delivery. That authorises the public demo, not a real-data production vault or backend deployment.
 
 ## Public boundary
 

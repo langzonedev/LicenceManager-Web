@@ -1,0 +1,10 @@
+import { mkdir, rm, copyFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root = fileURLToPath(new URL('../', import.meta.url));
+const files = ['index.html', 'styles.css', 'app.js', 'model.js', 'demo-data.js', 'sw.js', 'manifest.webmanifest', 'assets/icon.svg', 'assets/icon-192.png', 'assets/icon-512.png'];
+const destination = path.join(root, 'dist');
+await rm(destination, {recursive:true, force:true});
+await mkdir(path.join(destination, 'assets'), {recursive:true});
+for (const file of files) await copyFile(path.join(root,file), path.join(destination,file));
+console.log(`Built ${files.length} allowlisted application files into dist/. No docs, tests or internal files are published as site assets.`);

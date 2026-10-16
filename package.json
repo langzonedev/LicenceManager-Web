@@ -1,0 +1,12 @@
+{
+  "name": "licencemanager-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "node --check app.js && node --check model.js && node --check demo-data.js && node --check sw.js && npm test && npm run build",
+    "dev": "python3 -m http.server 8000"
+  }
+}

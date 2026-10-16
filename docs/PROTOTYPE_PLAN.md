@@ -1,6 +1,6 @@
 # Prototype plan
 
-Current state: design only. Implementation is the next task, after this pack.
+Current state: P1 fictional UI implemented on 16 October 2026. See [prototype release notes](PROTOTYPE_RELEASE.md) for actual source coverage, limits and verification. P2/P3 below remain planned.
 
 ## P1 — fictional browser/PWA prototype
 

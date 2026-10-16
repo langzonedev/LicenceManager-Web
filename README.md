@@ -4,7 +4,28 @@ Software licence information, ready when ICT needs it.
 
 Licence Manager is a proposed on-premises, browser-based tool for finding software entitlements, retrieving licence keys, checking renewal dates and seeing which systems use each licence.
 
-**Status: initial design pack, 16 October 2026. No application, hosted demo or production security controls have been implemented yet.**
+**Status: P1 fictional browser/PWA prototype implemented, 16 October 2026.** Public demo publication uses the included GitHub Pages workflow. Real authentication, shared storage and production security controls are not implemented.
+
+## Open the prototype
+
+Intended Pages address: **https://langzonedev.github.io/LicenceManager-Web/**. The repository's Pages source must be set to **GitHub Actions** before the deployment workflow can publish. Check the [Actions run](https://github.com/langzonedev/LicenceManager-Web/actions) for actual deployment status; the intended address alone does not establish that hosting is enabled.
+
+Select **Alex Morgan · Custodian**, then **Open demo workspace**. No password is needed. The account menu also previews Sam Taylor (Operator) and Jordan Lee (Viewer).
+
+Implemented: responsive overview, searchable/filterable licences, exact dummy-key copying without reveal, individual show/hide controls, automatic masking, add/edit licence, lightweight systems, allocation/reference links, fictional document/version viewing and download, renewal successors, due-action snooze/progress, metadata export and simulated activity. See [prototype notes](docs/PROTOTYPE_RELEASE.md).
+
+**Fictional data only. Changes live in the current tab and reset on refresh. Demo users are role previews, not secure sign-in. Separate devices do not share edits.**
+
+## Run or verify locally
+
+No npm dependencies are required. Use Node 24 or a compatible supported runtime, plus Python 3 for the local server.
+
+```sh
+npm run check
+npm run dev
+```
+
+Open `http://localhost:8000/`. If the system uses `python` instead of `python3`, run `python -m http.server 8000`. Opening `index.html` directly is not supported for ES modules; its startup message explains recovery. `npm run build` copies only allowlisted app files to `dist/`. GitHub Actions checks/tests that same source and publishes `dist/`.
 
 The first release is focused on software licensing. Lightweight system records provide hostnames, environments and service tag associations; full hardware asset management is a possible later extension.
 
@@ -21,10 +42,10 @@ The first release is focused on software licensing. Lightweight system records p
 
 | Environment | Intended purpose | Data |
 |---|---|---|
-| Public browser/PWA demo, built later | Evaluate the proposed workflows | Clearly fictional fixtures only |
+| Public browser/PWA demo | Evaluate the proposed workflows | Clearly fictional fixtures only |
 | Customer on-premises installation, built later | Authenticated team use through a customer-hosted HTTPS origin | Customer database and document storage within the customer's environment |
 
-The public demo must never request real keys, EULAs or customer inventories. It will not connect to a customer installation. PWA installation is optional; normal browser access is the primary experience. Offline support will cover the application shell and a reconnect message, not a local licence vault.
+The public demo must never request real keys, EULAs or customer inventories. It does not connect to a customer installation. PWA installation is optional; normal browser access is the primary experience. Offline support covers the application shell and a reconnect message, not a local licence vault.
 
 ## Repository purpose
 
