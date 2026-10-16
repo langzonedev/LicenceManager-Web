@@ -1,4 +1,6 @@
-# Public client contract v0.1
+# Public client contract v0.2
+
+The v0.2 additive metadata fields follow [expanded record requirements](../docs/EXPANDED_REQUIREMENTS.md): version/category, duration/payment and deployment model, activation/status, separate project/legal-owner/purchaser/custodian, usage/transfer rights, holding/subset/shared-pool identity and licence/SUM dates. New licence types and metrics are explicit enum expansions; a supported external API will require compatibility negotiation before these are released to independent consumers. No external API is deployed in this prototype.
 
 This is the intentionally public metadata DTO boundary, not an implemented API or a promise of external API availability. JSON Schema is [licence-summary.schema.json](licence-summary.schema.json). Its synthetic examples are [licence-summaries.json](../fixtures/licence-summaries.json). Authoritative private API details remain in the private engineering pack.
 

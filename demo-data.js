@@ -18,7 +18,7 @@ const base = (id, title, vendor, product, type, metric, quantity, end, support, 
   notes: 'Fictional example. No real licensing rights or vendor rules are represented.', secrets: [secret(id)], documents: docs(id), predecessor: null, successor: null, ...extras,
 });
 export function createFixtures() {
-  return {
+  const state = {
     licences: [
       base('lm-001', 'vCenter Server', 'Example Infrastructure', 'vCenter', 'subscription', 'instance', 1, '2026-11-15', '2026-11-15', '2026-10-31', { edition: 'Management · Production' }),
       base('lm-002', 'Windows Server', 'Example Systems', 'Windows Server', 'perpetual', 'core', 32, null, '2027-06-30', '2027-05-31', { edition: 'Server edition' }),
@@ -59,4 +59,21 @@ export function createFixtures() {
       { id: 'event-3', time: '2026-10-15T14:20:00+10:30', actor: 'Alex Morgan', action: 'Added document version', entity: 'lm-005', label: 'Database Server' },
     ],
   };
+  state.pools=[{id:'pool-windows',name:'Windows Server · shared purchase',quantity:40,metric:'core',reference:'DEMO-PO-WS-40'},{id:'pool-gpu',name:'GPU virtual workstation · shared purchase',quantity:10,metric:'concurrent_user',reference:'DEMO-PO-GPU-10'}];
+  state.systems.forEach((system,i)=>system.location=i<4?'Example data centre · Rack A':'Example office · Level 1');
+  state.licences.forEach((l,i)=>{
+    Object.assign(l,{softwareVersion:['8.0','2025','12.3','2026','2025','4.2','7.0','1.0','9.0'][i],category:i===1?'Operating System':i===5?'Security':i===7?'Development':'Application',licenceModel:i===3?'named_user':i===5?'node_locked':'floating',duration:l.licenceType==='perpetual'?'Perpetual rights':'12 months',paymentModel:l.licenceType==='perpetual'?'Once-off':'Annual',activation:l.secrets.length?'activated':'not_applied',licenceStatus:l.lifecycle==='archived'?'retired':l.licenceType==='evaluation'?'evaluation':'active',project:i<3?'Infrastructure refresh':'ICT operations',legalOwner:'Example ICT Services Pty Ltd',procuredBy:'Example procurement team',rights:'Authorised Example ICT Services staff only',transferable:'conditional',transferConditions:'Subject to the purchased terms and vendor approval.',holding:'allocated',subsetLabel:'',poolId:'',customUnit:'',portalUrl:'',licenceStart:date('2025-10-01'),supportStart:date('2026-01-01'),purchaseDate:date('2025-10-01'),sumPeriod:'12 months · support, updates and maintenance',sumReference:'DEMO-SUM-'+l.id,renewalDate:l.licenceType==='subscription'?structuredClone(l.licenceEnd):date(null),sumRenewal:structuredClone(l.supportEnd)});
+    for(const doc of l.documents){doc.purchaseVersionId=doc.versions[0].id;doc.purchaseReference=l.reference;}
+  });
+  // Distinct rows share a purchased entitlement, not mutable deployment facts.
+  const host1=state.licences.find(l=>l.id==='lm-002');host1.quantity=16;host1.poolId='pool-windows';host1.subsetLabel='Host 01 allocation';
+  const host2=structuredClone(host1);Object.assign(host2,{id:'lm-010',title:'Windows Server · host 02',reference:'DEMO-ORDER-002-HOST02',project:'VDI expansion',owner:'Sam Taylor',subsetLabel:'Host 02 allocation',supportEnd:date('2027-09-30'),sumRenewal:date('2027-09-30')});state.licences.push(host2);
+  state.associations.find(a=>a.id==='a-5').licenceId='lm-010';
+  const gpu=base('lm-011','GPU Virtual Workstation','Example GPU Vendor','Virtual workstation','perpetual','concurrent_user',6,null,'2026-12-31','2026-12-01');
+  Object.assign(gpu,{softwareVersion:'19.0',category:'Application',licenceModel:'floating',duration:'Perpetual rights',paymentModel:'Once-off + annual SUMS',activation:'activated',licenceStatus:'active',project:'Visualisation project',legalOwner:'Example ICT Services Pty Ltd',procuredBy:'Example procurement team',rights:'Named project staff, within purchased concurrent-user limits',transferable:'conditional',transferConditions:'See purchase-specific licence terms.',owner:'Alex Morgan',holding:'allocated',subsetLabel:'Production licence server',poolId:'pool-gpu',customUnit:'',portalUrl:'',licenceStart:date('2026-01-01'),purchaseDate:date('2026-01-01'),supportStart:date('2026-01-01'),sumPeriod:'12 months SUMS',sumReference:'DEMO-SUM-GPU-2026',sumRenewal:date('2026-12-31'),renewalDate:date(null)});
+  gpu.documents.forEach(d=>{d.purchaseVersionId=d.versions[0].id;d.purchaseReference=gpu.reference;});state.licences.push(gpu);
+  state.associations.push({id:'a-11',licenceId:gpu.id,systemId:'sys-001',purpose:'activation_target',units:null});
+  const spare=structuredClone(gpu);Object.assign(spare,{id:'lm-012',title:'GPU Virtual Workstation · spare subset',quantity:2,holding:'spare',activation:'not_applied',subsetLabel:'Contingency licences',owner:'Sam Taylor'});state.licences.push(spare);
+  const oss=structuredClone(gpu);Object.assign(oss,{id:'lm-013',title:'Open Development Tools',vendor:'Example Community',product:'Development Toolkit',category:'Development',licenceType:'open_source',licenceModel:'unrestricted',quantity:null,metric:'unrestricted',duration:'No fixed term recorded',paymentModel:'Free',activation:'not_applicable',poolId:'',holding:'spare',licenceEnd:date(null),sumRenewal:date(null),supportEnd:date(null),renewalNotice:date(null),renewalDate:date(null),secrets:[],softwareVersion:'3.2',rights:'Usage under the purchase-associated open-source terms; obligations still apply',transferable:'conditional'});state.licences.push(oss);
+  return state;
 }

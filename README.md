@@ -6,15 +6,15 @@ Software licence information, ready when ICT needs it.
 
 Licence Manager is a proposed on-premises, browser-based tool for finding software entitlements, retrieving licence keys, checking renewal dates and seeing which systems use each licence.
 
-**Status: P1 fictional browser/PWA prototype implemented, 16 October 2026.** Public demo publication uses the included GitHub Pages workflow. Real authentication, shared storage and production security controls are not implemented.
+**Status: v0.2 fictional browser/PWA prototype, 16 October 2026.** The expanded record model, navy/cyan palette, shared entitlement subsets and purchase-specific evidence are described in [v0.2 requirements](docs/EXPANDED_REQUIREMENTS.md). Real authentication, shared storage and production security controls are not implemented.
 
 ## Open the prototype
 
-The prototype is live on [GitHub Pages](https://langzonedev.github.io/LicenceManager-Web/). Pages is configured to publish through **GitHub Actions**. See [deployment runs](https://github.com/langzonedev/LicenceManager-Web/actions) for future updates.
+The prototype is live on [GitHub Pages](https://langzonedev.github.io/LicenceManager-Web/). Pages is configured to publish through **GitHub Actions**. See [deployment runs](https://github.com/langzonedev/LicenceManager-Web/actions) for the latest version's deployment status.
 
 Select **Alex Morgan · Custodian**, then **Open demo workspace**. No password is needed. The account menu also previews Sam Taylor (Operator) and Jordan Lee (Viewer).
 
-Implemented: responsive overview, searchable/filterable licences, exact dummy-key copying without reveal, individual show/hide controls, automatic masking, add/edit licence, lightweight systems, allocation/reference links, fictional document/version viewing and download, renewal successors, due-action snooze/progress, metadata export and simulated activity. See [prototype notes](docs/PROTOTYPE_RELEASE.md).
+Implemented: responsive overview, searchable/filterable licences, exact dummy-key copying without reveal, individual show/hide controls, automatic masking, expanded add/edit sections, lightweight systems/locations, per-system licence entries, shared purchases/spares/subsets, EULA/PO/contract versions pinned at purchase, fictional evidence snapshots/links, separate licence/SUM renewal dates, metadata export and simulated activity. See [v0.2 requirements](docs/EXPANDED_REQUIREMENTS.md) and [initial prototype notes](docs/PROTOTYPE_RELEASE.md).
 
 **Fictional data only. Changes live in the current tab and reset on refresh. Demo users are role previews, not secure sign-in. Separate devices do not share edits.**
 

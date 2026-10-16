@@ -15,7 +15,7 @@ Follow the current operator request, then these project instructions and the lin
 
 ## Product discipline
 
-Software licensing is the MVP. Systems are lightweight references. Do not introduce discovery agents, procurement, CMDB, depreciation, vendor activation or compliance certification.
+Software licensing is the MVP. Systems are lightweight references. The operator's v0.2 expanded records, navy/cyan palette, per-system entries/shared purchased pools and purchase-pinned evidence are specified in `docs/EXPANDED_REQUIREMENTS.md`; this supersedes the initial corporate-violet product palette and narrower field model. Procurement metadata is in scope; procurement workflow/finance is not. Do not introduce discovery agents, CMDB, depreciation, vendor activation or compliance certification.
 
 Read [requirements](docs/REQUIREMENTS.md), [UX](docs/UX_DESIGN.md), [workflows](docs/WORKFLOWS.md) and [contract](contracts/README.md) before implementation. Maintain the same field and state meanings across demo and on-prem clients. Show loading, failed, denied and disconnected states honestly; claim clipboard success only after the browser confirms it.
 

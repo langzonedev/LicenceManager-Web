@@ -1,5 +1,7 @@
 # Prototype 0.1.0
 
+Historical first-release notes. The [v0.2 record and palette update](EXPANDED_REQUIREMENTS.md) supersedes the narrower fields, corporate-violet palette and no-test-file-upload limitation below. The application remains a fictional tab-local demo.
+
 16 October 2026. Fictional interactive prototype; no real-data production capability.
 
 ## Using the demo

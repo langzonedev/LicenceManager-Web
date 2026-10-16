@@ -1,32 +1,262 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Licence summary design v0.1",
+  "title": "Licence summary design v0.2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "revision", "title", "vendor", "product", "reference", "licenceType", "lifecycle", "licenceEnd", "supportEnd", "renewalNotice", "metric", "quantity", "allocated", "systemLabels", "secretCount"],
+  "required": [
+    "id",
+    "revision",
+    "title",
+    "vendor",
+    "product",
+    "reference",
+    "licenceType",
+    "lifecycle",
+    "licenceEnd",
+    "supportEnd",
+    "renewalNotice",
+    "metric",
+    "quantity",
+    "allocated",
+    "systemLabels",
+    "secretCount"
+  ],
   "properties": {
-    "id": {"type": "string", "minLength": 1},
-    "revision": {"type": "integer", "minimum": 1},
-    "title": {"type": "string", "minLength": 1},
-    "vendor": {"type": "string"},
-    "product": {"type": "string"},
-    "reference": {"type": "string"},
-    "licenceType": {"enum": ["perpetual", "subscription", "evaluation", "unknown"]},
-    "lifecycle": {"enum": ["draft", "active", "retired", "archived"]},
-    "licenceEnd": {"$ref": "#/$defs/dateFact"},
-    "supportEnd": {"$ref": "#/$defs/dateFact"},
-    "renewalNotice": {"$ref": "#/$defs/dateFact"},
-    "metric": {"enum": ["seat", "device", "core", "socket", "instance", "other", "unknown"]},
-    "quantity": {"type": ["integer", "null"], "minimum": 1},
-    "allocated": {"type": ["integer", "null"], "minimum": 0},
-    "systemLabels": {"type": "array", "items": {"type": "string"}},
-    "secretCount": {"type": "integer", "minimum": 0}
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "vendor": {
+      "type": "string"
+    },
+    "product": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "licenceType": {
+      "enum": [
+        "perpetual",
+        "subscription",
+        "trial",
+        "evaluation",
+        "open_source",
+        "freeware",
+        "other",
+        "unknown"
+      ]
+    },
+    "lifecycle": {
+      "enum": [
+        "draft",
+        "active",
+        "retired",
+        "archived"
+      ]
+    },
+    "licenceEnd": {
+      "$ref": "#/$defs/dateFact"
+    },
+    "supportEnd": {
+      "$ref": "#/$defs/dateFact"
+    },
+    "renewalNotice": {
+      "$ref": "#/$defs/dateFact"
+    },
+    "metric": {
+      "enum": [
+        "seat",
+        "user",
+        "concurrent_user",
+        "device",
+        "core",
+        "socket",
+        "instance",
+        "site",
+        "processor",
+        "GPU",
+        "other",
+        "unrestricted",
+        "unknown"
+      ]
+    },
+    "quantity": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "allocated": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "systemLabels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "secretCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "softwareVersion": {
+      "type": "string"
+    },
+    "edition": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "string"
+    },
+    "paymentModel": {
+      "type": "string"
+    },
+    "project": {
+      "type": "string"
+    },
+    "legalOwner": {
+      "type": "string"
+    },
+    "procuredBy": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "rights": {
+      "type": "string"
+    },
+    "transferConditions": {
+      "type": "string"
+    },
+    "subsetLabel": {
+      "type": "string"
+    },
+    "poolId": {
+      "type": "string"
+    },
+    "customUnit": {
+      "type": "string"
+    },
+    "portalUrl": {
+      "type": "string"
+    },
+    "sumPeriod": {
+      "type": "string"
+    },
+    "sumReference": {
+      "type": "string"
+    },
+    "licenceStart": {
+      "$ref": "#/$defs/dateFact"
+    },
+    "supportStart": {
+      "$ref": "#/$defs/dateFact"
+    },
+    "purchaseDate": {
+      "$ref": "#/$defs/dateFact"
+    },
+    "renewalDate": {
+      "$ref": "#/$defs/dateFact"
+    },
+    "sumRenewal": {
+      "$ref": "#/$defs/dateFact"
+    },
+    "licenceModel": {
+      "enum": [
+        "node_locked",
+        "floating",
+        "site",
+        "named_user",
+        "unrestricted",
+        "other",
+        "unknown"
+      ]
+    },
+    "activation": {
+      "enum": [
+        "activated",
+        "not_applied",
+        "not_applicable",
+        "unknown"
+      ]
+    },
+    "licenceStatus": {
+      "enum": [
+        "active",
+        "retired",
+        "expired",
+        "evaluation"
+      ]
+    },
+    "transferable": {
+      "enum": [
+        "yes",
+        "no",
+        "conditional",
+        "unknown"
+      ]
+    },
+    "holding": {
+      "enum": [
+        "allocated",
+        "spare",
+        "reserved"
+      ]
+    }
   },
   "$defs": {
     "dateFact": {
       "oneOf": [
-        {"type": "object", "additionalProperties": false, "required": ["state", "date"], "properties": {"state": {"const": "known"}, "date": {"type": "string", "format": "date"}}},
-        {"type": "object", "additionalProperties": false, "required": ["state"], "properties": {"state": {"enum": ["unknown", "not_applicable"]}}}
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "date"
+          ],
+          "properties": {
+            "state": {
+              "const": "known"
+            },
+            "date": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "unknown",
+                "not_applicable"
+              ]
+            }
+          }
+        }
       ]
     }
   }

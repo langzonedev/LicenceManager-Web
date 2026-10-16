@@ -18,7 +18,7 @@ function harness(){
 }
 test('all main routes and detail tabs render for each demo role without exposing hidden key values',()=>{
   const {context,app}=harness();assert.match(app.innerHTML,/Your workspace awaits/);
-  const routes=['overview','licences','systems','systems/sys-001','renewals','activity','team','licences/lm-001/overview','licences/lm-001/systems','licences/lm-001/documents','licences/lm-001/history','licences/lm-006','licences/lm-008','missing'];
+  const routes=['overview','licences','systems','systems/sys-001','renewals','activity','team','licences/lm-001/overview','licences/lm-001/licensing','licences/lm-011','licences/lm-012','licences/lm-001/systems','licences/lm-001/documents','licences/lm-001/history','licences/lm-006','licences/lm-008','missing'];
   for(let i=0;i<3;i++)for(const route of routes){
     vm.runInContext(`user=USERS[${i}];location.hash=${JSON.stringify('#'+route)};render();`,context);
     assert.match(app.innerHTML,/<main/);assert.doesNotMatch(app.innerHTML,/DEMO-NOT-VALID-LM/);
@@ -46,4 +46,13 @@ test('role changes can preserve in-memory data while simulated logout removes th
   const{context,app}=harness();vm.runInContext("user=USERS[0];db.licences[0].title='Changed fictional title';user=USERS[1];location.hash='#licences';render();",context);
   assert.match(app.innerHTML,/Changed fictional title/);
   vm.runInContext('signOut()',context);assert.match(app.innerHTML,/Your workspace awaits/);assert.doesNotMatch(app.innerHTML,/Changed fictional title/);
+});
+
+test('expanded editors expose distinct ownership, SUM and purchase evidence controls',()=>{
+ const {context,modal}=harness();
+ vm.runInContext("user=USERS[0];licenceEditor('lm-001');",context);
+ for(const field of ['softwareVersion','category','licenceModel','activation','duration','paymentModel','legalOwner','procuredBy','rights','transferable','sumRenewalState','supportStartState','project','primarySystemId','poolQuantity'])assert.match(modal.innerHTML,new RegExp('name=\"'+field+'\"'));
+ assert.match(modal.innerHTML,/editor-section/);
+ vm.runInContext("documentEditor('lm-001');",context);
+ assert.match(modal.innerHTML,/name=\"evidenceFile\"/);assert.match(modal.innerHTML,/name=\"sourceUrl\"/);assert.match(modal.innerHTML,/later versions never replace/);
 });

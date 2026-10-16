@@ -8,7 +8,8 @@ test('a physical service tag finds its management entitlement without searching 
   assert.deepEqual(findLicences(db,'DEMO-TAG-001','all',DEMO_DATE).map(x=>x.id),['lm-001','lm-002']);
   assert.equal(findLicences(db,'DEMO-NOT-VALID','all',DEMO_DATE).length,0);
   assert.equal(allocated(db,'lm-001'),0);
-  assert.equal(allocated(db,'lm-002'),32);
+  assert.equal(allocated(db,'lm-002'),16);
+  assert.equal(allocated(db,'lm-010'),16);
 });
 test('perpetual rights remain distinct from expired support and unknowns never imply current',()=>{
   const db=createFixtures();
@@ -38,8 +39,9 @@ test('allocations enforce capacity, distinct relationship meaning and duplicate 
   const db=createFixtures(),l=db.licences[0];
   assert.doesNotThrow(()=>validateAssociation(db,l,{systemId:'sys-005',purpose:'reference',units:null}));
   assert.throws(()=>validateAssociation(db,l,{systemId:'sys-001',purpose:'activation_target',units:null}),/already/);
-  assert.throws(()=>validateAssociation(db,l,{systemId:'sys-005',purpose:'allocation',units:2}),/remain/);
-  assert.throws(()=>validateAssociation(db,l,{systemId:'sys-005',purpose:'allocation',units:0}),/positive/);
+  assert.throws(()=>validateAssociation(db,l,{systemId:'sys-005',purpose:'allocation',units:2}),/own licence entry/);
+  assert.throws(()=>validateAssociation(db,l,{systemId:'sys-001',purpose:'allocation',units:2}),/remain/);
+  assert.throws(()=>validateAssociation(db,l,{systemId:'sys-001',purpose:'allocation',units:0}),/positive/);
   assert.throws(()=>validateAssociation(db,l,{systemId:'missing',purpose:'reference'}),/existing/);
   l.lifecycle='archived';assert.throws(()=>validateAssociation(db,l,{systemId:'sys-005',purpose:'reference'}),/Restore/);
 });
