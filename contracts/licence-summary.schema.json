@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Licence summary design v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "revision", "title", "vendor", "product", "reference", "licenceType", "lifecycle", "licenceEnd", "supportEnd", "renewalNotice", "metric", "quantity", "allocated", "systemLabels", "secretCount"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "revision": {"type": "integer", "minimum": 1},
+    "title": {"type": "string", "minLength": 1},
+    "vendor": {"type": "string"},
+    "product": {"type": "string"},
+    "reference": {"type": "string"},
+    "licenceType": {"enum": ["perpetual", "subscription", "evaluation", "unknown"]},
+    "lifecycle": {"enum": ["draft", "active", "retired", "archived"]},
+    "licenceEnd": {"$ref": "#/$defs/dateFact"},
+    "supportEnd": {"$ref": "#/$defs/dateFact"},
+    "renewalNotice": {"$ref": "#/$defs/dateFact"},
+    "metric": {"enum": ["seat", "device", "core", "socket", "instance", "other", "unknown"]},
+    "quantity": {"type": ["integer", "null"], "minimum": 1},
+    "allocated": {"type": ["integer", "null"], "minimum": 0},
+    "systemLabels": {"type": "array", "items": {"type": "string"}},
+    "secretCount": {"type": "integer", "minimum": 0}
+  },
+  "$defs": {
+    "dateFact": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["state", "date"], "properties": {"state": {"const": "known"}, "date": {"type": "string", "format": "date"}}},
+        {"type": "object", "additionalProperties": false, "required": ["state"], "properties": {"state": {"enum": ["unknown", "not_applicable"]}}}
+      ]
+    }
+  }
+}

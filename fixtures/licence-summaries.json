@@ -1,0 +1,193 @@
+[
+  {
+    "id": "demo-entitlement-001",
+    "revision": 1,
+    "title": "vCenter subscription (fictional)",
+    "vendor": "Example Vendor",
+    "product": "vCenter",
+    "reference": "DEMO-ORDER-1001",
+    "licenceType": "subscription",
+    "lifecycle": "active",
+    "licenceEnd": {
+      "state": "known",
+      "date": "2027-01-31"
+    },
+    "supportEnd": {
+      "state": "known",
+      "date": "2027-01-31"
+    },
+    "renewalNotice": {
+      "state": "known",
+      "date": "2026-12-31"
+    },
+    "metric": "instance",
+    "quantity": 1,
+    "allocated": 1,
+    "systemLabels": [
+      "demo-mgmt-vm",
+      "DEMO-TAG-001"
+    ],
+    "secretCount": 1
+  },
+  {
+    "id": "demo-entitlement-002",
+    "revision": 1,
+    "title": "Perpetual licence, support expired",
+    "vendor": "Example Tools",
+    "product": "Example Backup",
+    "reference": "DEMO-ORDER-1002",
+    "licenceType": "perpetual",
+    "lifecycle": "active",
+    "licenceEnd": {
+      "state": "not_applicable"
+    },
+    "supportEnd": {
+      "state": "known",
+      "date": "2026-09-30"
+    },
+    "renewalNotice": {
+      "state": "not_applicable"
+    },
+    "metric": "device",
+    "quantity": 5,
+    "allocated": 2,
+    "systemLabels": [
+      "demo-backup-01"
+    ],
+    "secretCount": 1
+  },
+  {
+    "id": "demo-entitlement-003",
+    "revision": 1,
+    "title": "Dates require review",
+    "vendor": "Example Publisher",
+    "product": "Example Suite",
+    "reference": "DEMO-ORDER-1003",
+    "licenceType": "unknown",
+    "lifecycle": "draft",
+    "licenceEnd": {
+      "state": "unknown"
+    },
+    "supportEnd": {
+      "state": "unknown"
+    },
+    "renewalNotice": {
+      "state": "unknown"
+    },
+    "metric": "unknown",
+    "quantity": null,
+    "allocated": null,
+    "systemLabels": [],
+    "secretCount": 0
+  },
+  {
+    "id": "demo-entitlement-004",
+    "revision": 1,
+    "title": "Offline activation file example",
+    "vendor": "Example Appliances",
+    "product": "Example Gateway",
+    "reference": "DEMO-ORDER-1004",
+    "licenceType": "perpetual",
+    "lifecycle": "active",
+    "licenceEnd": {
+      "state": "not_applicable"
+    },
+    "supportEnd": {
+      "state": "known",
+      "date": "2026-11-15"
+    },
+    "renewalNotice": {
+      "state": "known",
+      "date": "2026-10-16"
+    },
+    "metric": "instance",
+    "quantity": 1,
+    "allocated": 1,
+    "systemLabels": [
+      "demo-gateway-01"
+    ],
+    "secretCount": 1
+  },
+  {
+    "id": "demo-entitlement-005",
+    "revision": 1,
+    "title": "Partially allocated seat pool",
+    "vendor": "Example Publisher",
+    "product": "Example Editor",
+    "reference": "DEMO-ORDER-1005",
+    "licenceType": "subscription",
+    "lifecycle": "active",
+    "licenceEnd": {
+      "state": "known",
+      "date": "2026-11-15"
+    },
+    "supportEnd": {
+      "state": "known",
+      "date": "2026-11-15"
+    },
+    "renewalNotice": {
+      "state": "known",
+      "date": "2026-10-31"
+    },
+    "metric": "seat",
+    "quantity": 10,
+    "allocated": 4,
+    "systemLabels": [
+      "demo-workstation-01"
+    ],
+    "secretCount": 1
+  },
+  {
+    "id": "demo-entitlement-006",
+    "revision": 1,
+    "title": "Expired evaluation",
+    "vendor": "Example Labs",
+    "product": "Example Monitor",
+    "reference": "DEMO-ORDER-1006",
+    "licenceType": "evaluation",
+    "lifecycle": "active",
+    "licenceEnd": {
+      "state": "known",
+      "date": "2026-10-15"
+    },
+    "supportEnd": {
+      "state": "not_applicable"
+    },
+    "renewalNotice": {
+      "state": "not_applicable"
+    },
+    "metric": "instance",
+    "quantity": 1,
+    "allocated": 0,
+    "systemLabels": [
+      "demo-monitor-vm"
+    ],
+    "secretCount": 1
+  },
+  {
+    "id": "demo-entitlement-007",
+    "revision": 1,
+    "title": "Archived predecessor",
+    "vendor": "Example Vendor",
+    "product": "Example Service",
+    "reference": "DEMO-ORDER-1007",
+    "licenceType": "perpetual",
+    "lifecycle": "archived",
+    "licenceEnd": {
+      "state": "not_applicable"
+    },
+    "supportEnd": {
+      "state": "not_applicable"
+    },
+    "renewalNotice": {
+      "state": "not_applicable"
+    },
+    "metric": "device",
+    "quantity": 1,
+    "allocated": 0,
+    "systemLabels": [
+      "demo-retired-system"
+    ],
+    "secretCount": 0
+  }
+]
