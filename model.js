@@ -71,6 +71,8 @@ export function attention(licence, today) {
 }
 export function allocated(state, id) { return state.associations.filter(a => a.licenceId === id && a.purpose === 'allocation').reduce((sum, a) => sum + a.units, 0); }
 export function linkedSystems(state, id) { return state.associations.filter(a => a.licenceId === id).map(a => ({ ...state.systems.find(s => s.id === a.systemId), association: a })); }
+// Counts and summary labels describe systems; relationship rows remain separate.
+export function uniqueLinkedSystems(state, id) { return [...new Map(linkedSystems(state, id).map(system => [system.id, system])).values()]; }
 export function dashboardMatches(licence, filter, today) {
   if (['retired', 'archived'].includes(licence.lifecycle)) return false;
   if (filter === 'current') return true;
@@ -172,5 +174,5 @@ export function metadataCsv(state) {
   return [columns, ...values].map(row => row.map(csvCell).join(',')).join('\r\n');
 }
 export function summary(state, l) {
-  return Object.fromEntries(Object.entries({ ...l, allocated: l.quantity === null ? null : allocated(state, l.id), systemLabels: linkedSystems(state, l.id).map(s => s.hostname), secretCount: l.secrets.length }).filter(([key]) => ['id','revision','title','vendor','product','reference','licenceType','lifecycle','licenceEnd','supportEnd','renewalNotice','metric','quantity','allocated','systemLabels','secretCount','softwareVersion','edition','category','duration','paymentModel','project','legalOwner','procuredBy','owner','rights','transferConditions','subsetLabel','poolId','customUnit','portalUrl','sumPeriod','sumReference','licenceStart','supportStart','purchaseDate','renewalDate','sumRenewal','licenceModel','activation','licenceStatus','transferable','holding'].includes(key)));
+  return Object.fromEntries(Object.entries({ ...l, allocated: l.quantity === null ? null : allocated(state, l.id), systemLabels: uniqueLinkedSystems(state, l.id).map(s => s.hostname), secretCount: l.secrets.length }).filter(([key]) => ['id','revision','title','vendor','product','reference','licenceType','lifecycle','licenceEnd','supportEnd','renewalNotice','metric','quantity','allocated','systemLabels','secretCount','softwareVersion','edition','category','duration','paymentModel','project','legalOwner','procuredBy','owner','rights','transferConditions','subsetLabel','poolId','customUnit','portalUrl','sumPeriod','sumReference','licenceStart','supportStart','purchaseDate','renewalDate','sumRenewal','licenceModel','activation','licenceStatus','transferable','holding'].includes(key)));
 }
