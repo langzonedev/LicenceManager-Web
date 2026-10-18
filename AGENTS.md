@@ -22,3 +22,5 @@ Read [requirements](docs/REQUIREMENTS.md), [UX](docs/UX_DESIGN.md), [workflows](
 ## Verification and handoff
 
 Document changes: check internal links, contract/fixture consistency and public exposure. App changes later: test clean launch, the complete primary journey, keyboard/phone layouts, refresh, offline shell and service worker update behaviour. Report design, source, build, runtime and release states separately. Keep internal review evidence in the private repository.
+
+18 October 2026 operator approval: the LM Signature product logo is approved for prototype use and application integration. Reuse the masters in assets/; the restriction on inventing replacement company artwork still applies to Lang Systems.

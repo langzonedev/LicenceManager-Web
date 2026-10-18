@@ -35,3 +35,6 @@ dialog :is(input,select,textarea,summary){scroll-margin-block:90px}
 
 .confirmation-dialog{max-width:470px}.confirmation-dialog .modal-body p{margin:0;font-size:13px}.confirmation-dialog::backdrop{background:#30323d99}
 .pool-capacity{background:var(--soft);border:1px solid #b9dfe9;border-radius:8px;padding:14px;font-size:12px}.pool-capacity[hidden]{display:none}.pool-capacity>strong{display:block;margin-bottom:12px;color:var(--link)}.capacity-counts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.capacity-counts span{font-size:11px;color:var(--muted)}.capacity-counts strong{display:block;margin-top:5px;font-size:20px;color:var(--ink)}.pool-capacity p{font-size:11px;margin:12px 0 0;line-height:1.6}.pool-capacity[data-tone=warning]{background:#fff8ed;border-color:#e7c58e}.renewal-summary{padding:0 20px 16px;margin:0;font-size:12px;line-height:1.7;color:var(--muted)}
+
+/* Approved LM Signature product identity, 18 October 2026. */
+.brand .product-mark{display:block;width:44px;height:auto;flex:0 0 44px;object-fit:contain}.sidebar .brand{gap:9px}.sidebar .brand .product-mark{width:36px;flex-basis:36px}

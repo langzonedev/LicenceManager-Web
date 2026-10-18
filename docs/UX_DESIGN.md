@@ -89,3 +89,5 @@ Use the current Lang Systems approved custom outline mark when artwork is introd
 | Motion | Approximately 160ms feedback; honour reduced motion |
 
 Use cyan for primary actions and charcoal for navigation, with neutral surfaces for data. Navy headings remain part of the palette. Status is text plus icon/colour. Test contrast in each actual state. Aim for 44px touch controls, visible focus, accessible field help, error summaries, skip navigation, semantic tables and non-obscured focused content. Keyboard access must match pointer actions. Do not require hover to retrieve essential information.
+
+18 October 2026 product identity approval: use the custom LM Signature in login/sidebar chrome and app icons. This product mark is separate from the approved Lang Systems outline company identity. See [asset provenance](../assets/README.md).
