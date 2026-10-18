@@ -2,11 +2,11 @@
 
 Software licence information, ready when ICT needs it.
 
-**[Open the live Licence Manager app →](https://langzonedev.github.io/LicenceManager-Web/)**
+**[Open the live Licence Manager prototype →](https://langzonedev.github.io/LicenceManager-Web/)**
 
 Licence Manager is a proposed on-premises, browser-based tool for finding software entitlements, retrieving licence keys, checking renewal dates and seeing which systems use each licence.
 
-**Status: v0.2 fictional browser/PWA prototype, 16 October 2026.** The expanded record model, navy/cyan palette, shared entitlement subsets and purchase-specific evidence are described in [v0.2 requirements](docs/EXPANDED_REQUIREMENTS.md). Real authentication, shared storage and production security controls are not implemented.
+**Status: v0.2 fictional browser/PWA prototype; documentation reviewed 18 October 2026.** The interface uses a charcoal/cyan palette with navy headings. The expanded record model, shared entitlement subsets and purchase-specific evidence are described in [v0.2 requirements](docs/EXPANDED_REQUIREMENTS.md). This public demo does not implement real authentication, shared storage or production security controls.
 
 See the [demonstration walkthrough](docs/DEMO_GUIDE.md) for a customer-facing tour and feedback instructions.
 
@@ -47,7 +47,7 @@ The first release is focused on software licensing. Lightweight system records p
 | Environment | Intended purpose | Data |
 |---|---|---|
 | Public browser/PWA demo | Evaluate the proposed workflows | Clearly fictional fixtures only |
-| Customer on-premises installation, built later | Authenticated team use through a customer-hosted HTTPS origin | Customer database and document storage within the customer's environment |
+| Separate customer on-premises product, outside this demo | Intended authenticated team use through a customer-hosted HTTPS origin; subject to its own release acceptance | Customer database and document storage within the customer's environment |
 
 The public demo must never request real keys, EULAs or customer inventories. It does not connect to a customer installation. PWA installation is optional; normal browser access is the primary experience. Offline support covers the application shell and a reconnect message, not a local licence vault.
 

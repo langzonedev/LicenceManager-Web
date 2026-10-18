@@ -141,3 +141,49 @@ test('renewals distinguish total date actions from distinct licence count, inclu
   h.run("query='vCenter';render()");const count=h.run("dueEvents(db,DEMO_DATE,true).filter(x=>x.licence.title.includes('vCenter')).length");
   assert.match(h.app.innerHTML,new RegExp(`${count} date actions across 1 licence matching`));
 });
+
+function dualRelationshipEditor(){
+  const h=harness();
+  h.run(`globalThis.edited=licence('lm-001');edited.quantity=4;
+    globalThis.deployment=db.associations.find(a=>a.licenceId===edited.id&&a.purpose==='activation_target');
+    const allocation={id:'qa-same-system-allocation',licenceId:edited.id,systemId:deployment.systemId,purpose:'allocation',units:2};
+    validateAssociation(db,edited,allocation);db.associations.push(allocation);
+    globalThis.formValues=Object.fromEntries(Object.entries(edited).filter(([,v])=>typeof v==='string'));
+    Object.assign(formValues,{title:edited.title+' · reviewed',quantity:String(edited.quantity),primarySystemId:deployment.systemId,poolId:edited.poolId||'',key:''});
+    for(const k of [...Object.keys(DATE_FIELDS),'licenceStart','supportStart','purchaseDate']){
+      formValues[k+'State']=edited[k]?.state||'unknown';formValues[k]=edited[k]?.date||'';
+    }
+    globalThis.FormData=class{constructor(){return Object.entries(globalThis.formValues)}};
+    globalThis.capturedErrors=null;formErrors=(_form,errors)=>{capturedErrors=errors};
+    globalThis.editForm={dataset:{id:edited.id,revision:String(edited.revision)}};`);
+  return h;
+}
+
+test('metadata edits preserve same-system activation and allocation links, including their identities',()=>{
+  const h=dualRelationshipEditor();
+  const original=h.run('JSON.stringify(db.associations)');
+  h.run("saveLicence(editForm,'active')");
+  assert.equal(h.run('capturedErrors'),null);
+  assert.equal(h.run('edited.title'),'vCenter Server · reviewed');
+  assert.equal(h.run('allocated(db,edited.id)'),2);
+  assert.equal(h.run('JSON.stringify(db.associations)'),original);
+  assert.equal(h.run('mutationCount'),1);
+});
+
+test('reducing entry capacity below its same-system allocation rejects the whole edit without mutation',()=>{
+  const h=dualRelationshipEditor();
+  const original=h.run('JSON.stringify(db)');
+  h.run("formValues.quantity='1';saveLicence(editForm,'active')");
+  assert.match(h.run('capturedErrors.quantity'),/below the existing system allocation/);
+  assert.equal(h.run('JSON.stringify(db)'),original);
+  assert.equal(h.run('mutationCount'),0);
+});
+
+test('a system card counts distinct licences when one licence has activation and allocation links',()=>{
+  const h=dualRelationshipEditor();
+  h.run('db.systems=db.systems.filter(s=>s.id===deployment.systemId);db.associations=db.associations.filter(a=>a.systemId===deployment.systemId);location.hash="#systems";render()');
+  const count=h.run('new Set(db.associations.map(a=>a.licenceId)).size');
+  assert.match(h.app.innerHTML,new RegExp(`<dt>Licences</dt><dd>${count} associated</dd>`));
+  h.run('location.hash="#systems/"+deployment.systemId;render()');
+  assert.match(h.app.innerHTML,new RegExp(`Associated licences<span class="count-label">${count}</span>`));
+});

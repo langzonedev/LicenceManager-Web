@@ -201,7 +201,7 @@ function systemsView(id) {
   }
   const q = query.trim().toLowerCase();
   const systems = db.systems.filter(s => [s.name,s.hostname,s.type,s.environment,s.serviceTag,s.location||''].some(v=>v.toLowerCase().includes(q)));
-  return `${heading('Systems','Know where your software is used.',can(user,'write') ? btn(`${icon('plus')}Add system`,'add-system','primary') : '')}<div class="system-cards">${systems.map(s=>`<a class="system-card" href="#systems/${s.id}"><div class="system-card-top"><span class="product-icon blue">${icon(s.type === 'Workstation' ? 'monitor' : 'server')}</span>${badge(s.environment,s.environment === 'Test' ? 'neutral' : 'purple')}</div><h2>${e(s.name)}</h2><p class="mono">${e(s.hostname)}</p><p class="small">${e(s.location||'Location not recorded')}</p><dl><div><dt>Service tag</dt><dd>${e(s.serviceTag || 'Not recorded')}</dd></div><div><dt>Licences</dt><dd>${db.associations.filter(a=>a.systemId === s.id).length} associated</dd></div></dl></a>`).join('')}</div>${!systems.length ? `<section class="panel">${empty('No systems found','Try a hostname, environment or service tag.',btn('Clear search','clear-search'))}</section>` : ''}`;
+  return `${heading('Systems','Know where your software is used.',can(user,'write') ? btn(`${icon('plus')}Add system`,'add-system','primary') : '')}<div class="system-cards">${systems.map(s=>`<a class="system-card" href="#systems/${s.id}"><div class="system-card-top"><span class="product-icon blue">${icon(s.type === 'Workstation' ? 'monitor' : 'server')}</span>${badge(s.environment,s.environment === 'Test' ? 'neutral' : 'purple')}</div><h2>${e(s.name)}</h2><p class="mono">${e(s.hostname)}</p><p class="small">${e(s.location||'Location not recorded')}</p><dl><div><dt>Service tag</dt><dd>${e(s.serviceTag || 'Not recorded')}</dd></div><div><dt>Licences</dt><dd>${new Set(db.associations.filter(a=>a.systemId === s.id).map(a=>a.licenceId)).size} associated</dd></div></dl></a>`).join('')}</div>${!systems.length ? `<section class="panel">${empty('No systems found','Try a hostname, environment or service tag.',btn('Clear search','clear-search'))}</section>` : ''}`;
 }
 function renewalsView() {
   const events = dueEvents(db, DEMO_DATE, true).filter(d => renewalFilter === 'snoozed' ? d.snoozeUntil && dayNumber(d.snoozeUntil) > dayNumber(DEMO_DATE) : renewalFilter === 'progress' ? d.status === 'In progress' && !(d.snoozeUntil && dayNumber(d.snoozeUntil)>dayNumber(DEMO_DATE)) : !(d.snoozeUntil && dayNumber(d.snoozeUntil)>dayNumber(DEMO_DATE))).filter(d=>!query || [d.licence.title,d.licence.owner,d.label].some(v=>v.toLowerCase().includes(query.toLowerCase())));
@@ -324,8 +324,10 @@ function saveLicence(form,mode) {
   else{record.id=uid('lm');record.revision=1;record.secrets=data.key?[{id:uid('key'),label:'Licence key',kind:'text',value:data.key}]:source?structuredClone(source.secrets):[];record.documents=source?structuredClone(source.documents):[];record.predecessor=null;record.successor=null;db.licences.unshift(record);}
   const saved=old||record;
   const prior=db.associations.find(a=>a.licenceId===saved.id&&a.purpose!=='reference');
-  db.associations=db.associations.filter(a=>a.licenceId!==saved.id||a.purpose==='reference');
-  if(data.primarySystemId)db.associations.push({id:prior?.id||uid('a'),licenceId:saved.id,systemId:data.primarySystemId,purpose:prior?.systemId===data.primarySystemId?prior.purpose:'activation_target',units:prior?.systemId===data.primarySystemId&&prior.purpose==='allocation'?prior.units:null});
+  if((data.primarySystemId||'')!==(prior?.systemId||'')){
+    db.associations=db.associations.filter(a=>a.licenceId!==saved.id||a.purpose==='reference');
+    if(data.primarySystemId)db.associations.push({id:prior?.id||uid('a'),licenceId:saved.id,systemId:data.primarySystemId,purpose:'activation_target',units:null});
+  }
   changed(old?'Updated entitlement':source?'Added separate system entry':'Created entitlement',saved);closeModal(true);navigate(`licences/${saved.id}`);notify('Licence entry saved in this demo tab.');
 }
 function systemEditor(id) {

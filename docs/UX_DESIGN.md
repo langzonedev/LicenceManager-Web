@@ -1,6 +1,6 @@
 # UX and GUI specification
 
-Design v0.1. Wireframe-level specification; screens have not been built.
+Historical design baseline v0.1, with public-demo document and palette corrections on 18 October 2026. The fictional interface is implemented; [v0.2 requirements](EXPANDED_REQUIREMENTS.md) supersede narrower field and workflow assumptions below. Server, authentication and recovery states describe the intended integrated product, not production controls in this public demo.
 
 ## Information architecture
 
@@ -47,7 +47,7 @@ At 320–767px: search first, licence cards with title, system and next date, fu
 
 **Associate system:** search existing by hostname/service tag or create a lightweight reference. Choose purpose: Activates on / Allocated to / Related system. Only Allocated to consumes quantity. Confirm units and metric, show remaining quantity, and warn about references sharing a tag. Do not guess a licensing calculation from processor/core information.
 
-**Documents:** type, title, version/date, local file. For the prototype use fictional text fixtures; real uploads are not enabled. For integrated MVP show uploading, validating, ready, rejected and retry states. Terms acknowledgement records the user/time and version viewed; no button claims to accept a vendor's EULA on behalf of a customer.
+**Documents:** type, title, version/date, local file. The public prototype uses fictional fixtures and accepts optional fictional PDF/plain-text snapshots up to 20 MiB. Files stay in browser memory, disappear on refresh and download as files; PDFs are not rendered inline. Do not use real customer or legal documents. For integrated MVP show uploading, validating, ready, rejected and retry states backed by server controls. Terms acknowledgement records the user/time and version viewed; no button claims to accept a vendor's EULA on behalf of a customer.
 
 **Renewal:** inspect due event, mark In progress or Snoozed until a date with a reason. Renew records a successor entitlement; it must not silently replace old dates or invalidate a previous key. Archive preserves history and requires resolving active allocations first.
 
@@ -73,18 +73,19 @@ In-memory draft preservation never overrides secret clearing. A refresh or close
 
 Use the current Lang Systems approved custom outline mark when artwork is introduced. Text wordmark is sufficient for the first prototype. Tagline: “Idea to production ready software.” No older filled LS artwork.
 
-| Semantic token | Proposed value / behaviour |
+| Semantic token | Current direction / behaviour |
 |---|---|
-| Background / surface | `#f1f4fa` / `#f8f9fd` |
-| Text / muted text | `#13072f` / `#635d78` |
-| Action / pressed action | `#6c19ff` / `#250861` |
-| Border | `#d7d8e5` |
+| Background / surface | Light neutral workspace / white data panels |
+| Navigation | Charcoal sidebar with cyan highlights |
+| Text / muted text | Navy headings / neutral body and secondary text |
+| Action / pressed action | Cyan primary action / visibly darker pressed state |
+| Border | Light neutral divider |
 | Danger / success | `#b42318` / `#087f5b` with text/icon |
 | Warning text | Dark brown with a pale warning background; verify actual contrast |
-| Focus | High-contrast violet/ink outline; never rely on a pale decorative accent |
+| Focus | High-contrast cyan/ink outline; never rely on a pale decorative accent |
 | Spacing | 4, 8, 12, 16, 24, 32px |
 | Radius | 6px controls, 10px panels; restrained elevation |
 | Type | System sans stack; optional bundled licensed Inter; 16px body |
 | Motion | Approximately 160ms feedback; honour reduced motion |
 
-Use violet for primary action, neutral surfaces for data. Status is text plus icon/colour. Test contrast in each actual state. Aim for 44px touch controls, visible focus, accessible field help, error summaries, skip navigation, semantic tables and non-obscured focused content. Keyboard access must match pointer actions. Do not require hover to retrieve essential information.
+Use cyan for primary actions and charcoal for navigation, with neutral surfaces for data. Navy headings remain part of the palette. Status is text plus icon/colour. Test contrast in each actual state. Aim for 44px touch controls, visible focus, accessible field help, error summaries, skip navigation, semantic tables and non-obscured focused content. Keyboard access must match pointer actions. Do not require hover to retrieve essential information.
