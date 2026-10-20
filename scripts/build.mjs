@@ -2,7 +2,7 @@ import { mkdir, rm, copyFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const root = fileURLToPath(new URL('../', import.meta.url));
-const files = ['index.html', 'styles.css', 'app.js', 'model.js', 'demo-data.js', 'sw.js', 'manifest.webmanifest', 'assets/icon.svg','assets/licence-manager-mark-dark.svg', 'assets/icon-192.png', 'assets/icon-512.png'];
+const files = ['index.html', 'styles.css', 'app.js', 'model.js', 'demo-data.js', 'sw.js', 'manifest.webmanifest', 'assets/icon.svg', 'assets/lang-systems-mark-outline.png','assets/licence-manager-mark-dark.svg', 'assets/icon-192.png', 'assets/icon-512.png'];
 const destination = path.join(root, 'dist');
 await rm(destination, {recursive:true, force:true});
 await mkdir(path.join(destination, 'assets'), {recursive:true});

@@ -1,13 +1,13 @@
 {
   "id": "./",
-  "name": "Licence Manager Demo",
-  "short_name": "Licences",
-  "description": "Fictional software licensing workspace by Lang Systems",
+  "name": "Lang Systems Licence Register",
+  "short_name": "Licence Register",
+  "description": "Portfolio demonstration with fictional software licensing records by Lang Systems",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#eaeaeb",
-  "theme_color": "#30323d",
+  "background_color": "#f1f4fa",
+  "theme_color": "#250861",
   "icons": [
     {"src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
     {"src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}

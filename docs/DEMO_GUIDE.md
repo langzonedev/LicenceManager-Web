@@ -1,4 +1,6 @@
-# Licence Manager demonstration guide
+# Licence Register demonstration notes
+
+20 October 2026: this is a parked Lang Systems portfolio demo. The original commission has stopped; further development is on request. These optional written notes are not an in-app tour or a support commitment. See [portfolio status](PORTFOLIO_STATUS.md).
 
 Open [the fictional workspace](https://langzonedev.github.io/LicenceManager-Web/), select Alex Morgan (Custodian), then **Open demo workspace**. No password is needed. Use synthetic examples only; changes and added files remain in this tab and disappear on refresh. The sample date is 16 October 2026.
 
@@ -17,10 +19,10 @@ Open [the fictional workspace](https://langzonedev.github.io/LicenceManager-Web/
 
 Use **Reset demo** to restore the starting fixtures. This requires confirmation. Closing or refreshing the tab also loses changes. If an app update is offered, finish the demonstration before applying it: applying an update reloads the tab.
 
-## Connectivity and support
+## Connectivity and feedback
 
 The optional PWA caches the application shell, not a customer vault. Disconnecting blocks workspace operations. An open metadata editor retains its fields in memory; its unsaved dummy key is cleared. Reconnect, review the fields, re-enter a dummy key if needed, and save. Browser installation support varies.
 
-For feedback, record the screen, selected demo account, steps, expected/actual result and browser/viewport. Include only synthetic screenshots. Send feedback to the person conducting your demonstration; this prototype does not submit support requests or telemetry.
+For feedback, record the screen, selected demo account, steps, expected/actual result and browser/viewport. Include only synthetic screenshots. Share feedback with the person who supplied the demo link; this prototype does not submit support requests or telemetry, and no response or maintenance service is promised.
 
-This public demo is a workflow demonstration. It has no real shared storage, server authentication/permissions, encrypted customer records or production recovery. The separate on-premises product has its own engineering and release acceptance; this demo does not connect to it or establish its production readiness. The separate `LicenceManager` repository is the private engineering record; its similarly named GitHub Pages address is not an application entry point.
+This public demo is a workflow demonstration. It has no real shared storage, server authentication/permissions, encrypted customer records or production recovery. Separate private engineering work is preserved for a possible restart and has its own acceptance and release gates; this demo does not connect to it or establish production readiness. The separate `LicenceManager` repository is the private engineering record; its similarly named GitHub Pages address is not an application entry point.

@@ -21,7 +21,8 @@ test('install reloads shell assets instead of copying stale HTTP cache into a ne
   const source=await readFile(new URL('../sw.js',import.meta.url),'utf8');
   vm.runInNewContext(source,{self,URL,Request,caches:{open:async()=>({addAll:async items=>{requests=items;}})}});
   listeners.install({waitUntil:promise=>installing=promise});await installing;
-  assert.equal(requests.length,10);assert.ok(requests.every(request=>request.cache==='reload'));
+  assert.equal(requests.length,11);assert.ok(requests.every(request=>request.cache==='reload'));
+  assert.ok(requests.some(request=>request.url.endsWith('/assets/lang-systems-mark-outline.png')));
   assert.ok(requests.every(request=>request.url.startsWith('https://example.invalid/LicenceManager-Web/')));
 });
 

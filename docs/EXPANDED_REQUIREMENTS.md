@@ -2,7 +2,11 @@
 
 16 October 2026. This extends the original P1 specification; these field meanings take precedence where the initial design was narrower. This remains a public fictional demo with tab-local memory, not a production licence vault.
 
-The product palette is **navy `#171345`**, with **cyan `#00b8ec`** accents. Following the operator’s Daronmont reference-site request, neutral grey `#eaeaeb` surfaces and charcoal `#30323d` replace lavender tones. Palette sampled from rendered https://daronmont.com.au/ on 16 October 2026; this is colour inspiration only. Pale surfaces retain readable tables/forms. Cyan buttons use navy text for contrast; links use a darker cyan on white.
+**20 October portfolio update:** public name **Lang Systems Licence Register**, compact **Licence Register**. The original commission has stopped and development is parked pending a new request. The existing repository/Pages address and approved LM geometry remain; the monogram represents **Licence Management**. This portfolio demo offers no production, support, availability or security assurance. See [status and restart notes](PORTFOLIO_STATUS.md).
+
+**Current portfolio palette, 20 October:** Lang Systems ink `#13072f`, secondary `#2c2352`, violet `#6c19ff`, dark `#250861`, cyan `#0ea5b7`, paper `#f1f4fa` and panel `#f8f9fd`. Verify contrast in the actual button, link and focus states.
+
+**Historical direction, superseded:** the 16 October customer prototype used navy `#171345` and cyan `#00b8ec`, then neutral grey `#eaeaeb` and charcoal `#30323d` following the operator’s Daronmont reference-site request. Those colours were sampled from rendered https://daronmont.com.au/ as inspiration only. The portfolio presentation now follows the Lang Systems company palette; the historical request is not the current visual authority.
 
 ## Requirement coverage
 
@@ -40,7 +44,7 @@ A renewal is a new purchase record: it starts without a key/evidence and without
 
 Each licence owns its evidence versions and a **purchase-version association**. New versions append; they do not replace the version marked **At purchase**. Shared system entries start with independent copies of the same purchase snapshot, so later edits do not mutate another system's history. Correcting a mistaken purchase association is an explicit confirmed action recorded in Activity.
 
-Source links are provenance only: a live URL can change and is not an immutable copy. Optional **fictional test-file** snapshots accept PDF/plain text up to 20 MiB, stay only in browser memory, retain original bytes plus a SHA-256 hash and are downloaded as files. PDFs are not rendered inline. Real legal/customer files still do not belong in the public demo. Refresh loses all such demo additions. The production backend still needs encrypted storage, scanning, retention and access controls.
+Source links are provenance only: a live URL can change and is not an immutable copy. Optional **fictional test-file** snapshots accept PDF/plain text up to 20 MiB, stay only in browser memory, retain original bytes plus a SHA-256 hash and are downloaded as files. PDFs are not rendered inline. Real legal/customer files still do not belong in the public demo. Refresh loses all such demo additions. Any future production candidate requires separately verified encrypted storage, scanning, retention and access controls; the public demo makes no claim about those controls.
 
 SUM/SUMS terminology and the distinction between perpetual rights and support renewal follow the requested vendor-portal pattern. No vendor API, commercial rule calculation or portal synchronisation is implemented.
 

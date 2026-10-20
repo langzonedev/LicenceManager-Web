@@ -2,8 +2,8 @@
 // API response, customer record, document download or arbitrary navigation URL.
 const ROOT = new URL('./', self.location.href);
 const CACHE_PREFIX = `licencemanager-shell:${ROOT.pathname}:`;
-const VERSION = `${CACHE_PREFIX}v13`;
-const FILES = ['index.html','styles.css','app.js','model.js','demo-data.js','manifest.webmanifest','assets/icon.svg','assets/licence-manager-mark-dark.svg','assets/icon-192.png','assets/icon-512.png'];
+const VERSION = `${CACHE_PREFIX}v14`;
+const FILES = ['index.html','styles.css','app.js','model.js','demo-data.js','manifest.webmanifest','assets/icon.svg','assets/lang-systems-mark-outline.png','assets/licence-manager-mark-dark.svg','assets/icon-192.png','assets/icon-512.png'];
 const allowed = new Set(FILES.map(path => new URL(path, ROOT).href));
 self.addEventListener('install', event => { event.waitUntil(caches.open(VERSION).then(cache => cache.addAll([...allowed].map(url => new Request(url, {cache: 'reload'}))))); });
 self.addEventListener('activate', event => {

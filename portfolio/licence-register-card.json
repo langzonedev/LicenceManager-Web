@@ -1,0 +1,16 @@
+{
+  "product": "Lang Systems Licence Register",
+  "compactName": "Licence Register",
+  "status": "Portfolio demo",
+  "category": "Software licensing",
+  "demoUrl": "https://langzonedev.github.io/LicenceManager-Web/",
+  "websiteUrl": "https://langsystems.com.au/",
+  "preparedDate": "2026-10-20",
+  "html": "licence-register-card.html",
+  "css": "licence-register-card.css",
+  "cssScope": ".licence-register-product",
+  "requiresJavaScript": false,
+  "externalAssets": [],
+  "dataClassification": "Fictional decorative preview; no live application data",
+  "availability": "Interactive public portfolio prototype; not a customer production release"
+}

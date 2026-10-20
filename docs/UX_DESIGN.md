@@ -1,5 +1,7 @@
 # UX and GUI specification
 
+20 October 2026 current presentation: **Lang Systems Licence Register**, compact **Licence Register**, a parked fictional portfolio demo. See [portfolio status](PORTFOLIO_STATUS.md). The company palette below supersedes the earlier Daronmont-inspired customer-demo palette. No in-app tour is required; labels, visible state and contextual feedback explain the interactions.
+
 Historical design baseline v0.1, with public-demo document and palette corrections on 18 October 2026. The fictional interface is implemented; [v0.2 requirements](EXPANDED_REQUIREMENTS.md) supersede narrower field and workflow assumptions below. Server, authentication and recovery states describe the intended integrated product, not production controls in this public demo.
 
 ## Information architecture
@@ -75,19 +77,22 @@ Use the current Lang Systems approved custom outline mark when artwork is introd
 
 | Semantic token | Current direction / behaviour |
 |---|---|
-| Background / surface | Light neutral workspace / white data panels |
-| Navigation | Charcoal sidebar with cyan highlights |
-| Text / muted text | Navy headings / neutral body and secondary text |
-| Action / pressed action | Cyan primary action / visibly darker pressed state |
+| Background / surface | Paper `#f1f4fa` / panel `#f8f9fd` |
+| Navigation | Ink `#13072f` / secondary `#2c2352` |
+| Text / secondary | Ink `#13072f` / secondary `#2c2352`, with readable muted text |
+| Action / pressed action | Violet `#6c19ff` / dark `#250861` |
+| Supporting accent | Cyan `#0ea5b7`; verify text contrast before use |
 | Border | Light neutral divider |
 | Danger / success | `#b42318` / `#087f5b` with text/icon |
 | Warning text | Dark brown with a pale warning background; verify actual contrast |
-| Focus | High-contrast cyan/ink outline; never rely on a pale decorative accent |
+| Focus | High-contrast violet/ink outline; never rely on a pale decorative accent |
 | Spacing | 4, 8, 12, 16, 24, 32px |
 | Radius | 6px controls, 10px panels; restrained elevation |
 | Type | System sans stack; optional bundled licensed Inter; 16px body |
 | Motion | Approximately 160ms feedback; honour reduced motion |
 
-Use cyan for primary actions and charcoal for navigation, with neutral surfaces for data. Navy headings remain part of the palette. Status is text plus icon/colour. Test contrast in each actual state. Aim for 44px touch controls, visible focus, accessible field help, error summaries, skip navigation, semantic tables and non-obscured focused content. Keyboard access must match pointer actions. Do not require hover to retrieve essential information.
+Use the Lang Systems ink/violet/cyan palette with pale surfaces for data. This 20 October portfolio direction supersedes the earlier navy/charcoal/cyan customer prototype. Status is text plus icon/colour. Test contrast in each actual state. Aim for 44px touch controls, visible focus, accessible field help, error summaries, skip navigation, semantic tables and non-obscured focused content. Keyboard access must match pointer actions. Do not require hover to retrieve essential information.
 
 18 October 2026 product identity approval: use the custom LM Signature in login/sidebar chrome and app icons. This product mark is separate from the approved Lang Systems outline company identity. See [asset provenance](../assets/README.md).
+
+20 October portfolio interpretation: retain the approved geometry as the **Licence Management** monogram; the public product title is **Licence Register**, not LM Signature. Commercial name/logo clearance remains outstanding. Keep the separate Lang Systems outline company identity intact.
